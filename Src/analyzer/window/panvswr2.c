@@ -232,6 +232,7 @@ static float fcur;// frequency at cursor position in kHz
 static char buf[64];
 static LCDPoint pt;
 static float complex values[WWIDTH+1];
+static uint32_t freqChg;
 
 //modified by KD8CEC for reduce memory usage rate
 /*
@@ -353,6 +354,56 @@ static const TEXTBOX_t tb_menuQuartz2[] =
 };
 
 
+static float freqMHzf;
+
+static void ShowFr(int digits) //digits: 0 ...3
+{
+    char str[20];
+    uint8_t i,j;
+    freqMHzf=(float)(CFG_GetParam(CFG_PARAM_MEAS_F) / 1000000.);
+
+    if(digits==0) sprintf(str, "F: %4.0f MHz  ", freqMHzf);
+    else if (digits==1) sprintf(str, "F: %4.1f MHz  ", freqMHzf);
+    else if (digits==2) sprintf(str, "F: %4.2f MHz  ", freqMHzf);
+    else sprintf(str, "F: %4.3f MHz  ", freqMHzf);
+
+    LCD_FillRect(LCD_MakePoint(0, 70), LCD_MakePoint(200,125), BackGrColor);
+    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 0, 70, str);// WK
+    freqChg==1;
+}
+
+
+void SWR_1M(void){
+    CFG_SetParam(CFG_PARAM_MEAS_F,(CFG_GetParam(CFG_PARAM_MEAS_F)+1000000));
+    CFG_Flush();
+    ShowFr(2);
+}
+void SWR_100k(void){
+    CFG_SetParam(CFG_PARAM_MEAS_F,(CFG_GetParam(CFG_PARAM_MEAS_F)+100000));
+    CFG_Flush();
+    ShowFr(2);
+}
+void SWR_10k(void){
+    CFG_SetParam(CFG_PARAM_MEAS_F,(CFG_GetParam(CFG_PARAM_MEAS_F)+10000));
+    CFG_Flush();
+    ShowFr(2);
+}
+void SWR_min1M(void){
+    CFG_SetParam(CFG_PARAM_MEAS_F,(CFG_GetParam(CFG_PARAM_MEAS_F)-1000000));
+    CFG_Flush();
+    ShowFr(2);
+}
+void SWR_min100k(void){
+    CFG_SetParam(CFG_PARAM_MEAS_F,(CFG_GetParam(CFG_PARAM_MEAS_F)-100000));
+    CFG_Flush();
+    ShowFr(2);
+}
+void SWR_min10k(void){
+    CFG_SetParam(CFG_PARAM_MEAS_F,(CFG_GetParam(CFG_PARAM_MEAS_F)-10000));
+    CFG_Flush();
+    ShowFr(2);
+}
+
 
 
 static const TEXTBOX_t tb_menuSWR[] = {
@@ -365,7 +416,19 @@ static const TEXTBOX_t tb_menuSWR[] = {
     (TEXTBOX_t){.x0 = 190, .y0 = 210, .text =  "Mute", .font = FONT_FRANBIG,.width = 90, .height = 34, .center = 1,
                  .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = SWR_Mute , .cbparam = 1, .next = (void*)&tb_menuSWR[4] },
     (TEXTBOX_t){ .x0 = 0, .y0 = 210, .text = "Exit", .font = FONT_FRANBIG, .width = 70, .height = 34, .center = 1,
-                 .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = LCD_RED, .cb = (void(*)(void))SWR_Exit, .cbparam = 1,},
+                 .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = LCD_RED, .cb = (void(*)(void))SWR_Exit, .cbparam = 1,.next = (void*)&tb_menuSWR[5] },
+    (TEXTBOX_t){ .x0 = 0, .y0 = 0, .text = "+ 1 MHz", .font = FONT_FRAN, .width = 70, .height = 34, .center = 1,
+                 .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = (void(*)(void))SWR_1M, .cbparam = 1,.next = (void*)&tb_menuSWR[6] },
+    (TEXTBOX_t){ .x0 = 80, .y0 = 0, .text = "+ 100k", .font = FONT_FRAN, .width = 70, .height = 34, .center = 1,
+                 .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = (void(*)(void))SWR_100k, .cbparam = 1,.next = (void*)&tb_menuSWR[7] },
+    (TEXTBOX_t){ .x0 = 160, .y0 = 0, .text = "+ 10 k", .font = FONT_FRAN, .width = 70, .height = 34, .center = 1,
+                 .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = (void(*)(void))SWR_10k, .cbparam = 1,.next = (void*)&tb_menuSWR[8] },
+    (TEXTBOX_t){ .x0 = 240, .y0 = 0, .text = "- 10 k", .font = FONT_FRAN, .width = 70, .height = 34, .center = 1,
+                 .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = (void(*)(void))SWR_min10k, .cbparam = 1,.next = (void*)&tb_menuSWR[9] },
+    (TEXTBOX_t){ .x0 = 320, .y0 = 0, .text = "- 100k", .font = FONT_FRAN, .width = 70, .height = 34, .center = 1,
+                 .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = (void(*)(void))SWR_min100k, .cbparam = 1,.next = (void*)&tb_menuSWR[10] },
+    (TEXTBOX_t){ .x0 = 400, .y0 = 0, .text = "- 1 MHz", .font = FONT_FRAN, .width = 70, .height = 34, .center = 1,
+                 .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = (void(*)(void))SWR_min1M, .cbparam = 1,},
 };
 
 
@@ -2018,30 +2081,6 @@ static void SWR_3(void){
     ToneTrigger=1;
 }
 
-
-static void ShowFr(void)
-{
-    char str[20];
-    uint8_t i,j;
-    unsigned int freq=(unsigned int)(CFG_GetParam(CFG_PARAM_MEAS_F) / 1000);
-    sprintf(str, "F: %u MHz  ", freq);
-    if(freq>999) // WK
-    {
-        for(i=3; i<10; i++)
-        {
-            if(str[i]==' ') break;// search space before "kHz"
-        }
-        for(j=i+3; j>i-4; j--)
-        {
-            str[j+1]=str[j];
-        }
-        str[i-3]='.';
-        str[i+5]=0;
-    }
-    LCD_FillRect(LCD_MakePoint(0, 60), LCD_MakePoint(200,115), BackGrColor);
-    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 0, 60, str);// WK
-}
-
 uint32_t fxs = 3600000ul; //Scan range start frequency, in Hz
 uint32_t fxkHzs;//Scan range start frequency, in kHz
 BANDSPAN *pBss;
@@ -2064,7 +2103,7 @@ void SWR_SetFrequency(void)
     CFG_Flush();
     //  redrawWindow = 1;
     Sleep(200);
-    ShowFr();
+    ShowFr(1);
     sFreq=1;
 }
 
@@ -2096,8 +2135,6 @@ void setup_GPIO(void) // GPIO I Pin 2 for buzzer
     //AUDIO1=0;
 }
 
-static uint32_t freqChg;
-
 //TEXTBOX_CTX_t SWR1_ctx;
 
 void Tune_SWR_Proc(void){// -----------------------------------------------------------------------
@@ -2115,12 +2152,10 @@ uint32_t color1, vswr10, vsw_old, k=0;
     rqExitSWR=false;
     SetColours();
     LCD_FillAll(BackGrColor);
-    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 120, 10, "Tune SWR ");
+    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 120, 40, "Tune SWR ");
     Sleep(1000);
     while(TOUCH_IsPressed());
-    fxs=CFG_GetParam(CFG_PARAM_MEAS_F);
-    fxkHzs=fxs/1000;
-    ShowFr();
+    ShowFr(1);//reads frequency from file
     TEXTBOX_InitContext(&SWR1);
     muted=0;// begin without mute
     SWRTone=1;//tone on
@@ -2144,7 +2179,7 @@ for(;;)
                 return;
             }
             if(freqChg==1){
-               ShowFr();
+               ShowFr(1);
                freqChg=0;
             }
             Sleep(50);
@@ -2152,11 +2187,11 @@ for(;;)
         k++;
         if(k>=5){
             k=0;
-            DSP_Measure(fxkHzs*1000, 1, 1, CFG_GetParam(CFG_PARAM_MEAS_NSCANS));
+            DSP_Measure(freqMHzf*1000000., 1, 1, CFG_GetParam(CFG_PARAM_MEAS_NSCANS));
             vswrf = DSP_CalcVSWR(DSP_MeasuredZ());
             SwrDiff=vswrf_old-vswrf;
             if(SwrDiff<0)SwrDiff=-SwrDiff;
-            if((ToneTrigger==1)||(SwrDiff>0.01*vswrf)){// Difference more than 1 %
+            if((ToneTrigger==1)||(SwrDiff>0.03*vswrf)){// Difference more than 3 %
                 ToneTrigger=0;
                 vswrf_old=vswrf;
                 vswr10=10.0*vswrf;
@@ -2176,9 +2211,9 @@ for(;;)
                     UB_TIMER2_Start();
                 }
                 else UB_TIMER2_Stop();
-                sprintf(str, "SWR: %.2f  ", vswrf);
-                LCD_FillRect(LCD_MakePoint(200, 60), LCD_MakePoint(470,115), BackGrColor);
-                FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 200, 60, str);
+                sprintf(str, "SWR: %.1f  ", vswrf);
+                LCD_FillRect(LCD_MakePoint(200, 70), LCD_MakePoint(470,125), BackGrColor);
+                FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 200, 70, str);
                 width=(uint32_t)(3*vswLogf-400.0);
                 if(width>479) width=479;
                 if(vswrf<2.0) color1=0xff00ff00;
@@ -3537,7 +3572,7 @@ void Quartz_proc(void)
     while(TOUCH_IsPressed());
     fxs=CFG_GetParam(CFG_PARAM_MEAS_F);
     fxkHzs=fxs/1000;
-    ShowFr();
+    ShowFr(3);
     TEXTBOX_InitContext(&Quartz_ctx);
 
 //HW calibration menu
@@ -3562,7 +3597,7 @@ void Quartz_proc(void)
             {
                 if(freqChg==1)
                 {
-                    ShowFr();
+                    ShowFr(3);
                     freqChg=0;
                 }
                 Sleep(50);
