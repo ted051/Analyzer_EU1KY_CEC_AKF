@@ -126,7 +126,7 @@ void TRACK_Beep(int duration)
 
 static void DrawAutoText(void)
 {
-    static const char* atxt = "  Auto  ";
+    static const char* atxt = "  Auto ";
     if (0 == autofast)
         FONT_Print(FONT_FRAN, TextColor, BackGrColor, 437, trackMenus[5][BUTTON_TOP] + 5,  atxt);
     else

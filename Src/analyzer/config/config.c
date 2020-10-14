@@ -535,7 +535,7 @@ void CFG_Init(void)
 
     CFG_SetParam(CFG_PARAM_SEREMUL,0);          // VE7IT default serial emulation is AA600
     CFG_SetParam(CFG_PARAM_BT_SPEED, 9600);      // DG2DRF default Bluetooth adapter speed
-    CFG_SetParam(CFG_PARAM_REGION, 1);
+    CFG_SetParam(CFG_PARAM_REGION, 0);  // default: Region 1
     CFG_SetParam(CFG_PARAM_ORIENTATION, 0);// DH1AKF Screen orientation 29.09.2020
     CFG_SetParam(CFG_PARAM_LOGLOG, 1);
     //Load parameters from file on SD card

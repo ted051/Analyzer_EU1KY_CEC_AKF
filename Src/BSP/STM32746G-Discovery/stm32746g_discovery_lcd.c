@@ -802,6 +802,7 @@ void BSP_LCD_DisplayStringAtLine(uint16_t Line, uint8_t *ptr)
   */
 void BSP_LCD_DrawHLine(uint16_t X, uint16_t Y, uint16_t Length)
 {
+  if(Length==0) return;
   uint32_t  Xaddress = 0;
 
   /* Get the line address */
@@ -828,6 +829,7 @@ void BSP_LCD_DrawHLine(uint16_t X, uint16_t Y, uint16_t Length)
 void BSP_LCD_DrawVLine(uint16_t X, uint16_t Y, uint16_t Length)
 {
 
+  if(Length==0) return;
   uint32_t  Xaddress = 0;
 
   /* Get the line address */

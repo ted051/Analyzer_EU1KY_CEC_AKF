@@ -36,6 +36,8 @@ void Quartz_proc(void);
 uint8_t AUDIO1;
 static uint8_t loudness;
 void  setup_GPIO(void);
-
+void ShowFr(int digits);
+static float freqMHzf;
+void SWR_SetFrequency(void);
 
 #endif

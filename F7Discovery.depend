@@ -18034,7 +18034,7 @@
 1560182800 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\adc\stm32_ub_system.c
 	"stm32_ub_system.h"
 
-1600980677 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\beeptimer.c
+1602603105 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\beeptimer.c
 	<stdio.h>
 	<string.h>
 	<ctype.h>
@@ -18051,9 +18051,9 @@
 1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\bsp\stm32746g-discovery\stm32746g_discovery.h
 	"stm32f7xx_hal.h"
 
-1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\panvswr2.h
+1602498880 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\panvswr2.h
 
-1584821716 g:\daten\analyzer_eu1ky_cec_akf\src\inc\beeptimer.h
+1602603105 g:\daten\analyzer_eu1ky_cec_akf\src\inc\beeptimer.h
 
 1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\inc\main.h
 	"stm32f7xx_hal.h"
@@ -18143,7 +18143,7 @@
 
 1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\inc\freqcounter.h
 
-1602174550 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\config\config.c
+1602606231 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\config\config.c
 	"config.h"
 	"ff.h"
 	"crash.h"
@@ -18456,7 +18456,7 @@
 	"LCD.h"
 	"main.h"
 
-1602311151 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\lcd\lcd.c
+1602669607 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\lcd\lcd.c
 	"LCD.h"
 	"stm32f7xx_hal.h"
 	"stm32f7xx.h"
@@ -18504,7 +18504,7 @@
 1560182800 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\lcd\sdigits.c
 	"sdigits.h"
 
-1602191194 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\lcd\smith.c
+1602494171 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\lcd\smith.c
 	"smith.h"
 	"LCD.h"
 	"font.h"
@@ -18518,7 +18518,7 @@
 	<complex.h>
 	"lcd.h"
 
-1602187786 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\lcd\textbox.c
+1602702819 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\lcd\textbox.c
 	"textbox.h"
 	"LCD.h"
 	"touch.h"
@@ -18717,7 +18717,7 @@
 
 1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\fftwnd.h
 
-1560182800 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\generator.c
+1602523980 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\generator.c
 	<stdint.h>
 	<stdio.h>
 	"LCD.h"
@@ -18728,6 +18728,7 @@
 	"config.h"
 	"hit.h"
 	"main.h"
+	"measurement.h"
 	"num_keypad.h"
 	"panfreq.h"
 	"generator.h"
@@ -18738,7 +18739,7 @@
 	<stdbool.h>
 	"panvswr2.h"
 
-1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\generator.h
+1602523980 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\generator.h
 
 1560182800 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\keyboard.c
 	<stdio.h>
@@ -18750,7 +18751,7 @@
 	"keyboard.h"
 	"textbox.h"
 
-1602264091 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\mainwnd.c
+1602671338 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\mainwnd.c
 	<stdio.h>
 	<string.h>
 	<ctype.h>
@@ -18786,7 +18787,7 @@
 	<ctype.h>
 	"main.h"
 
-1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\measurement.h
+1602523980 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\measurement.h
 
 1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\oslcal.h
 
@@ -18802,7 +18803,7 @@
 
 1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\fatfs\drivers\sd_diskio.h
 
-1602423661 g:\daten\analyzer_eu1ky_cec_akf\src\inc\build_timestamp.h
+1602706488 g:\daten\analyzer_eu1ky_cec_akf\src\inc\build_timestamp.h
 
 1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\tdr.h
 
@@ -18841,7 +18842,7 @@
 	"panfreq.h"
 	"bitmaps/bitmaps.h"
 
-1601735075 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\measurement.c
+1602604739 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\measurement.c
 	<stdint.h>
 	<stdio.h>
 	<math.h>
@@ -18852,6 +18853,7 @@
 	"font.h"
 	"touch.h"
 	"hit.h"
+	"textbox.h"
 	"dsp.h"
 	"gen.h"
 	"stm32f746xx.h"
@@ -18863,6 +18865,7 @@
 	"smith.h"
 	"measurement.h"
 	"panfreq.h"
+	"panvswr2.h"
 	"bitmaps/bitmaps.h"
 
 1560182800 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\num_keypad.c
@@ -18903,7 +18906,7 @@
 	"panfreq.h"
 	"panvswr2.h"
 
-1602411185 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\panvswr2.c
+1602668395 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\panvswr2.c
 	<stdint.h>
 	<stdio.h>
 	<string.h>
@@ -19035,7 +19038,7 @@
 	"tdr.h"
 	"hit.h"
 
-1602187786 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\trackspectr.c
+1602671793 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\trackspectr.c
 	<stdint.h>
 	<stdio.h>
 	<string.h>
@@ -19130,7 +19133,7 @@
 1560182800 g:\daten\analyzer_eu1ky_cec_akf\src\bsp\stm32746g-discovery\stm32746g_discovery_eeprom.h
 	"stm32746g_discovery.h"
 
-1602347328 source:g:\daten\analyzer_eu1ky_cec_akf\src\bsp\stm32746g-discovery\stm32746g_discovery_lcd.c
+1602662322 source:g:\daten\analyzer_eu1ky_cec_akf\src\bsp\stm32746g-discovery\stm32746g_discovery_lcd.c
 	<string.h>
 	"stm32746g_discovery_lcd.h"
 	"../../../Utilities/Fonts/fonts.h"

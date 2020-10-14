@@ -253,65 +253,64 @@ LCDPoint p, q;
 
 void LCD_Line(LCDPoint a, LCDPoint b, LCDColor color)
 {
- LCDPoint p, q;
-
-    if (a.x >= LCD_GetWidth())
-        a.x = LCD_GetWidth() - 1;
-    if (b.x >= LCD_GetWidth())
-        b.x = LCD_GetWidth() - 1;
-    if (a.y >= LCD_GetHeight())
-        a.y = LCD_GetHeight() - 1;
-    if (b.y >= LCD_GetHeight())
-        b.y = LCD_GetHeight() - 1;
+    if (a.x >= 479)
+        a.x = 479;
+    if (b.x >= 479)
+        b.x = 479;
+    if (a.y >= 271)
+        a.y = 271;
+    if (b.y >= 271)
+        b.y = 271;
+    /*if(a.y==b.y){
+        if(b.x>a.x)
+            LCD_HLine(LCD_MakePoint(a.x, a.y), b.x - a.x+1, color);
+        else
+            LCD_HLine(LCD_MakePoint(b.x, a.y), a.x - b.x+1, color);
+        return;
+    }
+    if(a.x==b.x){
+        if(b.y>a.y)
+            LCD_VLine(LCD_MakePoint(a.x, a.y), b.y - a.y+1, color);
+        else
+            LCD_VLine(LCD_MakePoint(a.x, b.y), a.y - b.y+1, color);
+        return;
+    }*/
     color |= 0xFF000000ul;
     BSP_LCD_SetTextColor(color);
-
-   /* if(LCD_Get_Orientation()==1){
-        p.x=479-b.x;
-        p.y=271-b.y;
-        q.x=479-a.x;
-        q.y=271-a.y;
-        BSP_LCD_DrawLine(p.x, p.y, q.x, q.y);
-    }
-    else*/
-        BSP_LCD_DrawLine(a.x, a.y, b.x, b.y);
+    BSP_LCD_DrawLine(a.x, a.y, b.x, b.y);
 } //LCD_Line
 
 void LCD_VLine(LCDPoint a, uint16_t length, LCDColor color)
 {
-    if (a.x >= LCD_GetWidth())
-        a.x = LCD_GetWidth() - 1;
-    if (a.y + length>= LCD_GetHeight())
-        a.y = LCD_GetHeight() -length - 1;
+    if (a.x >= 479)
+        a.x = 479;
+    if (a.y + length>= 271)
+        length=271-a.y;
+    if(length==0) return;
     color |= 0xFF000000ul;
     BSP_LCD_SetTextColor(color);
 
     if(LCD_Get_Orientation()==1){
-        LCDPoint p;
-        p.x=479-a.x;
-        p.y=271-a.y-length;
-        BSP_LCD_DrawVLine(p.x, p.y, length);
+        a.x=479-a.x;
+        a.y=271-a.y-length;
     }
-    else
-        BSP_LCD_DrawVLine(a.x, a.y, length);
+    BSP_LCD_DrawVLine(a.x, a.y, length);
 } //LCD_VLine
 
 void LCD_HLine(LCDPoint a, uint16_t length, LCDColor color)
 {
-    if (a.x + length >= LCD_GetWidth())
-        a.x = LCD_GetWidth() - length-1;
-    if (a.y >= LCD_GetHeight())
-        a.y = LCD_GetHeight() - 1;
+    if (a.x + length >= 479)
+        length = 479 - a.x;
+    if(length==0) return;
+    if (a.y >= 271)
+        a.y = 271;
     color |= 0xFF000000ul;
     BSP_LCD_SetTextColor(color);
     if(LCD_Get_Orientation()==1){
-        LCDPoint p;
-        p.x=479-a.x-length;
-        p.y=271-a.y;
-        BSP_LCD_DrawHLine(p.x, p.y, length);
+        a.x=479-a.x-length;
+        a.y=271-a.y;
     }
-    else
-        BSP_LCD_DrawHLine(a.x, a.y, length);
+    BSP_LCD_DrawHLine(a.x, a.y, length);
 } //LCD_HLine
 
 void LCD_Circle(LCDPoint center, uint16_t r, LCDColor color)

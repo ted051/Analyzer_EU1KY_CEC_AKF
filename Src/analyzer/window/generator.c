@@ -15,6 +15,7 @@
 #include "config.h"
 #include "hit.h"
 #include "main.h"
+#include "measurement.h"
 #include "num_keypad.h"
 #include "panfreq.h"
 #include "generator.h"
@@ -62,60 +63,6 @@ uint8_t i,j;
 static void GENERATOR_SwitchWindow(void)
 {
     rqExit = 1;
-}
-
-static void FDecr(uint32_t step)
-{
-    uint32_t MeasurementFreq = CFG_GetParam(CFG_PARAM_GEN_F);
-   /* if((MeasurementFreq > step) && (MeasurementFreq % step != 0))
-    {
-        MeasurementFreq -= (MeasurementFreq % step);
-        CFG_SetParam(CFG_PARAM_GEN_F, MeasurementFreq);
-        fChanged = 1;
-    }*/
-    if(MeasurementFreq < BAND_FMIN)
-    {
-        MeasurementFreq = BAND_FMIN;
-        CFG_SetParam(CFG_PARAM_GEN_F, MeasurementFreq);
-        fChanged = 1;
-    }
-    if(MeasurementFreq > BAND_FMIN)
-    {
-        if(MeasurementFreq > step && (MeasurementFreq - step) >= BAND_FMIN)
-        {
-            MeasurementFreq = MeasurementFreq - step;
-            CFG_SetParam(CFG_PARAM_GEN_F, MeasurementFreq);
-            fx=MeasurementFreq;
-            fChanged = 1;
-        }
-    }
-}
-
-static void FIncr(uint32_t step)
-{
-    uint32_t MeasurementFreq = CFG_GetParam(CFG_PARAM_GEN_F);
-  /*  if(MeasurementFreq > step && MeasurementFreq % step != 0)
-    {
-        MeasurementFreq -= (MeasurementFreq % step);
-        CFG_SetParam(CFG_PARAM_GEN_F, MeasurementFreq);
-        fChanged = 1;
-    }*/
-    if(MeasurementFreq < BAND_FMIN)
-    {
-        MeasurementFreq = BAND_FMIN;
-        CFG_SetParam(CFG_PARAM_GEN_F, MeasurementFreq);
-        fChanged = 1;
-    }
-    if(MeasurementFreq < CFG_GetParam(CFG_PARAM_BAND_FMAX))
-    {
-        if ((MeasurementFreq + step) > CFG_GetParam(CFG_PARAM_BAND_FMAX))
-            MeasurementFreq = CFG_GetParam(CFG_PARAM_BAND_FMAX);
-        else
-            MeasurementFreq = MeasurementFreq + step;
-        CFG_SetParam(CFG_PARAM_GEN_F, MeasurementFreq);
-        fx=MeasurementFreq;
-        fChanged = 1;
-    }
 }
 
 static void GENERATOR_FDecr_500k(void)

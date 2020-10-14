@@ -26,10 +26,8 @@ static void _rcirc(float R, float R0, int32_t radius, int32_t x, int32_t y, LCDC
     float g = (R - R0) / (R + R0);
     float roffset = radius * g;
     int32_t rr = (int32_t)(roundf((radius - roffset) / 2));
-   // if(LCD_Get_Orientation()==1)
-        LCD_Circle(LCD_MakePoint(x +radius - rr, y), rr, color);
-   // else
-   //     LCD_Circle(LCD_MakePoint(x - radius + rr, y), rr, color);
+    LCD_Circle(LCD_MakePoint(x +radius - rr, y), rr, color);
+
 }
 
 // Draw Smith chart grid
@@ -37,47 +35,31 @@ static void _rcirc(float R, float R0, int32_t radius, int32_t x, int32_t y, LCDC
 void SMITH_DrawGrid(int32_t x, int32_t y, int32_t r, LCDColor color, LCDColor bgcolor, uint32_t flags)
 {
   //  SMITH_ResetStartPoint();
-    //LCD_WaitForRedraw();
-int32_t x0,y0;
-    if(LCD_Get_Orientation()==1){
-       x0=479-x; y0=271-y;
-    }
-    else {
-        x0=x; y0=y;
-    }
+
     centerx = x;
     centery = y;
     lastradius = r;
     if (0 != bgcolor){
-        LCD_FillCircle(LCD_MakePoint(x0, y0), (uint16_t)r, bgcolor);
-        LCD_Circle(LCD_MakePoint(x0, y0), r, color);
-        LCD_HLine(LCD_MakePoint(x0-r, y0), 2 * r, color);
+        LCD_FillCircle(LCD_MakePoint(x, y), (uint16_t)r, bgcolor);
+        LCD_Circle(LCD_MakePoint(x, y), r, color);
+        LCD_HLine(LCD_MakePoint(x-r, y), 2 * r, color);
     }
 // SWR = 2.0 circle
     if (flags & SMITH_SWR2)
-        LCD_Circle(LCD_MakePoint(x0 , y0), (int32_t)(r / 3.f), color);
+        LCD_Circle(LCD_MakePoint(x , y), (int32_t)(r / 3.f), color);
 
     // Y=1/50 circle
     if (flags & SMITH_Y50){
-     //   if(LCD_Get_Orientation()==1)
-            LCD_Circle(LCD_MakePoint(x0 - r/2, y0), r/2, color);
-     //   else
-     //       LCD_Circle(LCD_MakePoint(x + r/2, y), r/2, color);
+        LCD_Circle(LCD_MakePoint(x - r/2, y), r/2, color);
+
     }
 
-    if (flags & SMITH_R10) _rcirc(10.f, 50.f, r, x0, y0, color);
-    if (flags & SMITH_R25)_rcirc(25.f, 50.f, r, x0, y0, color);
-    if (flags & SMITH_R50) _rcirc(50.f, 50.f, r, x0, y0, color);
-    if (flags & SMITH_R100) _rcirc(100.f, 50.f, r, x0, y0, color);
-    if (flags & SMITH_R200) _rcirc(200.f, 50.f, r, x0, y0, color);
-    if (flags & SMITH_R500) _rcirc(500.f, 50.f, r, x0, y0, color);
-
-    if(LCD_Get_Orientation()==1){
-       x=479-x; y=271-y;
-    }
-    else {
-        x=x; y=y;
-    }
+    if (flags & SMITH_R10) _rcirc(10.f, 50.f, r, x, y, color);
+    if (flags & SMITH_R25)_rcirc(25.f, 50.f, r, x, y, color);
+    if (flags & SMITH_R50) _rcirc(50.f, 50.f, r, x, y, color);
+    if (flags & SMITH_R100) _rcirc(100.f, 50.f, r, x, y, color);
+    if (flags & SMITH_R200) _rcirc(200.f, 50.f, r, x, y, color);
+    if (flags & SMITH_R500) _rcirc(500.f, 50.f, r, x, y, color);
 
     // j50 arcs
     if (flags & SMITH_J50)
@@ -132,10 +114,6 @@ void SMITH_DrawLabels(LCDColor color, LCDColor bgcolor, uint32_t flags)
     int32_t x = centerx;
     int32_t y = centery;
     int32_t r = lastradius;
-    if(LCD_Get_Orientation()==1){
-        x=479-x;
-        y=271-y;
-    }
 
     float r0f = (float)CFG_GetParam(CFG_PARAM_R0);
 
@@ -214,11 +192,6 @@ void SMITH_DrawG(int index, float complex G, LCDColor color)
     int32_t xoffset = (int32_t)(crealf(G) * lastradius);
     int32_t yoffset = (int32_t)(-cimagf(G) * lastradius);
 
-    if(LCD_Get_Orientation()==1){
-        centerx=479-centerx;
-        centery=271-centery;
-    }
-
     if(index<800){
         if(index==0){
             LCD_SetPixel(LCD_MakePoint(centerx + xoffset, centery + yoffset), color);
@@ -233,12 +206,6 @@ void SMITH_DrawG(int index, float complex G, LCDColor color)
            }
         }
     }
-
-    if(LCD_Get_Orientation()==1){
-        centerx=479-centerx;
-        centery=271-centery;
-    }
-
     lastxoffset = xoffset;
     lastyoffset = yoffset;
 }
@@ -247,18 +214,12 @@ void SMITH_DrawGEndMark(LCDColor color)
 {
     if (lastxoffset == INT_MAX)
         return;
-    if(LCD_Get_Orientation()==1){
-        centerx=479-centerx;
-        centery=271-centery;
-    }
+
     LCD_SetPixel(LCD_MakePoint(centerx+lastxoffset, centery+lastyoffset), LCD_RED);
     LCD_SetPixel(LCD_MakePoint(centerx+lastxoffset-1, centery+lastyoffset), LCD_RED);
     LCD_SetPixel(LCD_MakePoint(centerx+lastxoffset+1, centery+lastyoffset), LCD_RED);
     LCD_SetPixel(LCD_MakePoint(centerx+lastxoffset, centery+lastyoffset-1), LCD_RED);
     LCD_SetPixel(LCD_MakePoint(centerx+lastxoffset, centery+lastyoffset+1), LCD_RED);
-    if(LCD_Get_Orientation()==1){
-        centerx=479-centerx;
-        centery=271-centery;
-    }
+
     lastxoffset = INT_MAX;
 }

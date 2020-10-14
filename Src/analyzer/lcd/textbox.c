@@ -218,12 +218,12 @@ uint32_t xx1,xx2,yy1,yy2;
                 }
                 if (pbox->cb)
                 {
-                    if (pbox->cbparam)
-                    {
-                        ((void(*)(const TEXTBOX_t*))pbox->cb)(pbox);
-                    }
-                    else
-                        pbox->cb();
+                if (pbox->cbparam)
+                {
+                    ((void(*)(const TEXTBOX_t*))pbox->cb)(pbox);
+                }
+                else
+                    pbox->cb();
                 }
                 if (pbox->nowait)
                 {

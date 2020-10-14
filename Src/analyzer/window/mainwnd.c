@@ -568,7 +568,7 @@ if (DatumDDMMYYYY)
                     FFTWND_Proc();
                     break;
 
-                case BTN_TRACKER :
+                case BTN_TRACKER :// S21
                     Track_Proc();
                     break;
 
