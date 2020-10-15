@@ -390,6 +390,7 @@ static void MEASUREMENT_SetFreq(void)
         CFG_SetParam(CFG_PARAM_MEAS_F, fxkHz*1000);
     }
    // uint32_t val = NumKeypad(CFG_GetParam(CFG_PARAM_MEAS_F)/1000, BAND_FMIN/1000, CFG_GetParam(CFG_PARAM_BAND_FMAX)/1000, "Set measurement frequency, kHz");
+    freqMHzf=fxkHz/1000.;
     CFG_Flush();
     fChanged=1;
     Sleep(200);
@@ -903,12 +904,12 @@ static LCDPoint pt;
         }
         if(TOUCH_Poll(&pt)){
             if(HitTest(TuneSWR_HitArr, pt.x, pt.y)==1){ //any button pressed?
-                if (pt.y < 35)
-                {
+
+                if(fChanged){
+                    fChanged=0;
                     ShowFr(2);
                     CFG_Flush();
                 }
-
                 if (MeasRqExit==1)
                 {
                     SWRTone=0;

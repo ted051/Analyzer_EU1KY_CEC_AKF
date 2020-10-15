@@ -291,13 +291,13 @@ void QuNextStep(void){
     if(QuStep==0){
         SWR_SetFrequency();
         QuStep=1;
-        FONT_Write(FONT_FRANBIG, M_FGCOLOR, M_BGCOLOR, 84, 232, "  Calibrate OPEN   ");
+        FONT_Write(FONT_FRANBIG, M_FGCOLOR, M_BGCOLOR, 84, 231, "  Calibrate OPEN   ");
         FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 0, 180, "Step 2: Calibrate (without quartz)          ");
     }
     else if(QuStep==1){
         QuCalibrate();
         QuStep=2;
-        FONT_Write(FONT_FRANBIG, M_FGCOLOR, M_BGCOLOR, 84, 232, "Start Measurement");
+        FONT_Write(FONT_FRANBIG, M_FGCOLOR, M_BGCOLOR, 84, 231, "Start Measurement");
         FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 0, 180, "Step 3: Now insert the Quartz               ");
 
     }
@@ -312,13 +312,13 @@ static const TEXTBOX_t tb_menuQuartz[] =
 {
     (TEXTBOX_t)
     {
-        .x0 = 80, .y0 = 230, .text =    "  Set Frequency   ", .font = FONT_FRANBIG,.width = 230, .height = 34, .center = 1,
+        .x0 = 80, .y0 = 228, .text =    "  Set Frequency   ", .font = FONT_FRANBIG,.width = 230, .height = 36, .center = 1,
         .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb =  QuNextStep , .cbparam = 1, .next = (void*)&tb_menuQuartz[1]
     },
 
     (TEXTBOX_t)
     {
-        .x0 = 1, .y0 = 230, .text = "Exit", .font = FONT_FRANBIG, .width = 70, .height = 34, .center = 1,
+        .x0 = 1, .y0 = 228, .text = "Exit", .font = FONT_FRANBIG, .width = 70, .height = 36, .center = 1,
         .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = LCD_RED, .cb = (void(*)(void))SWR_Exit, .cbparam = 1,
     },
 };
@@ -3165,7 +3165,7 @@ void QuCalibrate(void)
     sprintf(str, "C0 = %.2f pF", 1e12*C0);
     FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 200, 100, str);
     sCalib=1;
-    LCD_FillRect(LCD_MakePoint(10,180),LCD_MakePoint(440,215),BackGrColor);
+    LCD_FillRect(LCD_MakePoint(0,180),LCD_MakePoint(440,215),BackGrColor);
     Sleep(2000);
 }
 
@@ -3176,7 +3176,7 @@ void QuMeasure(void)
     float Cs,Ls,Q;
 
 
-    LCD_FillRect(LCD_MakePoint(10,180),LCD_MakePoint(479,235),BackGrColor);
+    LCD_FillRect(LCD_MakePoint(0,180),LCD_MakePoint(479,227),BackGrColor);
     if(span>BS1000) span=BS1000;// maximum: 1 MHz
     //test((char) span);//Testpunkt
     ScanRX(0);
@@ -3206,7 +3206,7 @@ void QuMeasure(void)
     f1=Fs;
     ScanRX(0);
     Cp-=C0;
-    LCD_FillRect(LCD_MakePoint(0,20),LCD_MakePoint(440,215),BackGrColor);
+    LCD_FillAll(BackGrColor);
     FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 150, 20, "Quartz Data ");
     sprintf(str, "Fs = %d  ", Fs);
     FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 20, 60, str);
