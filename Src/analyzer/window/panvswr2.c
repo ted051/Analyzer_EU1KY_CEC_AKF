@@ -564,8 +564,8 @@ static void DrawCursor()
 {
     int8_t i;
     LCDPoint p;
-    if ((!isMeasured)||(AutoCursor==0))
-        return;
+   // if ((!isMeasured)||(AutoCursor==0))
+   //     return;
 
     if (grType == GRAPH_SMITH)
     {
@@ -725,11 +725,12 @@ static int ManualCursor;
 
 static void DecrCursor()
 {
-    if (!isMeasured)
-        return;
+   // if (!isMeasured)
+    //    return;
     if (cursorPos == 0)
         return;
     ManualCursor=1;
+    AutoCursor=0;
     DrawCursor();// delete the old cursor
     cursorPos--;
     DrawCursor();
@@ -750,11 +751,12 @@ static void DecrCursor()
 
 static void IncrCursor()
 {
-    if (!isMeasured)
-        return;
-    if (cursorPos == WWIDTH)
+   // if (!isMeasured)
+    //    return;
+    if (cursorPos >= WWIDTH)
         return;
     ManualCursor=1;
+    AutoCursor=0;
     DrawCursor();// delete the old cursor
     cursorPos++;
     DrawCursor();
@@ -1053,7 +1055,7 @@ static void ScanRX(int selector)
     int newDispTag = 0;
     for(i = 0; i <= WWIDTH; i++)
     {
-        if(i % 40 == 0)
+       /* if(i % 40 == 0)
         {
             //FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 450, 0, "TS");
             //Sleep(50);
@@ -1066,7 +1068,7 @@ static void ScanRX(int selector)
             {
                 FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 450, 0, "dP");
             }
-        }
+        }*/
 
         //Sleep(10);
         freq1 = fstart + i * deltaF;
@@ -1185,6 +1187,11 @@ static void DrawVSWR(void)
         FONT_Write(FONT_FRANBIG, LCD_RED, BackGrColor, X0 +405, Y0+40, "|Z|");
     if (!isMeasured)
         return;
+    //BSP_LCD_SelectLayer(1);
+    //BSP_LCD_SetTransparency(1,0);
+
+    //BSP_LCD_FillRect(X0,Y0,WWIDTH,WHEIGHT);
+
     MinSWR=0;
     MinIndex=9999;
     float MaxZ, MinZ, factorA, factorB;
@@ -1236,12 +1243,8 @@ static void DrawVSWR(void)
         lastoffset_sm = offset_sm;
     }
 
-    /*
-    FONT_Write(FONT_FRANBIG, CurvColor, BackGrColor, X0 -46, Y0+ 0, "S");
-    FONT_Write(FONT_FRANBIG, CurvColor, BackGrColor, X0 -50, Y0+30, "W");
-    FONT_Write(FONT_FRANBIG, CurvColor, BackGrColor, X0 -46, Y0+60, "R");
-    */
-    if((AutoCursor==1) && (ManualCursor==0)){
+   if((AutoCursor==1) && (ManualCursor==0)){
+
         cursorPos=MinIndex;
     }
 
@@ -1308,7 +1311,10 @@ static void DrawVSWR(void)
     {
         DrawRX(0,1);
     }
+
     DrawCursor();
+    //BSP_LCD_SetTransparency(1,255);
+    //BSP_LCD_SelectLayer(0);
 }
 
 static void LoadBkups()
@@ -1341,14 +1347,6 @@ static void LoadBkups()
 
     autoMeasureSpeed = CFG_GetParam(CFG_PARAM_PAN_AUTOSPEED);
 }
-
-/*
-static void DrawHelp(void)
-{
-    FONT_Write(FONT_FRAN, LCD_PURPLE, LCD_BLACK, 160,  20, "(Tap here to set F and Span)");
-    FONT_Write(FONT_FRAN, LCD_PURPLE, LCD_BLACK, 160, 110, "(Tap here change graph type)");
-}
-*/
 
 
 /*
@@ -3058,7 +3056,7 @@ int Beeper=0;
         if (TOUCH_Poll(&pt))
         {
             //LCD_FillAll(BackGrColor);//
-            if(pt.y<60) Frequency();//              Special Functions (unvisible)
+            if(pt.y<60) Frequency();//              Special Functions (invisible)
             else if((pt.y<180)&&(pt.x>60)&&(pt.x<400))
             {
                 DiagType();// next diagram type
@@ -3078,15 +3076,13 @@ int Beeper=0;
                     DecrCursor();
                     Beeper=1;
                     autofast=0;
-                    redrawRequired=0;
-                    //ClearScreen=1;
+                    redrawRequired=1;
                 }
                 else if((pt.y>=132)&&(pt.y<=160)){// ">"
                     IncrCursor();
                     Beeper=1;
                     autofast=0;
-                    redrawRequired=0;
-                    //ClearScreen=1;
+                    redrawRequired=1;
                 }
                 else
                     Sleep(100);
