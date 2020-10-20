@@ -15,5 +15,7 @@
 bool PanFreqWindow(uint32_t *pFkhz, BANDSPAN *pBs);
 void MultiSWR_Proc(void);
 static uint8_t rqDel;
+static uint32_t _f1;// in Hz
+void GetBS(uint32_t);
 
 #endif

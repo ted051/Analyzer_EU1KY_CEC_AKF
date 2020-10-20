@@ -145,7 +145,7 @@ int FONT_Write_N(FONTS fnt, LCDColor fg, LCDColor bg, uint16_t x, uint16_t y, co
 
     //Fill the rectangle with background color
     if (0 != bg)
-        LCD_FillRect(LCD_MakePoint(x, y), LCD_MakePoint(x + FONT_GetStrPixelWidth(fnt, pStr), y + fp.charHeight), bg);
+        LCD_FillRect(LCD_MakePoint(x, y), LCD_MakePoint(x + FONT_GetStrPixelWidth(fnt, pStr), y + fp.charHeight-1), bg);
 
     while (*pStr != '\0' && nChars--)
     {

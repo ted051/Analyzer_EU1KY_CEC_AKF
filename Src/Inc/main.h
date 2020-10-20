@@ -52,6 +52,7 @@
 #include "stm32_ub_adc3_single.h"
 #include "FreqCounter.h"
 #include "panvswr2.h"
+#include "panfreq.h"
 
 #endif /* __MAIN_H */
 void Sleep(uint32_t nms);

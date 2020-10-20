@@ -205,7 +205,7 @@ uint32_t xx1,xx2,yy1,yy2;
 
         if (coord.x >= pbox->x0 && coord.x < pbox->x0 + pbox->width)
         {
-            if(pbox->y0>240) ykrit=225;//DH1AKF 04.10.2020
+            if(pbox->y0>240) ykrit=240;//DH1AKF 04.10.2020
             else ykrit=pbox->y0;
             if (coord.y >= ykrit && coord.y < pbox->y0 + pbox->height)
             {

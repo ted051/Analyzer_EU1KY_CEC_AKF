@@ -427,8 +427,7 @@ char text1[20];
     sprintf(text1, "%04d %02d %02d  ", date/10000,mon / 100, mon % 100);
     FONT_Write(FONT_FRAN, CurvColor, LCD_RGB(64, 64, 64), 220, 257, text1);
 
-    sprintf(text1, "%02d:%02d:%02d ", time/100, time % 100, second1);
-
+    sprintf(text1, "%02d:%02d:%02d  ", time/100, time % 100, second1);
     FONT_Write(FONT_FRAN, CurvColor, LCD_RGB(64, 64, 64), 305, 257, text1);
 }
 
@@ -447,7 +446,6 @@ void MainWnd(void)
 {
 //uint8_t i;
 int counter11;
-
     //By KD8CEC
     #ifdef _DEBUG_UART
     DBGUART_Init();
@@ -461,7 +459,7 @@ int counter11;
     //modified by KD8CEC
     //LCD_FillAll(LCD_BLACK);
     SetColours();
-
+    GetBS(CFG_GetParam(CFG_PARAM_PAN_F1)/1000);
     //KD8CEC
     BSP_LCD_SelectLayer(1);
     LCD_ShowActiveLayerOnly();

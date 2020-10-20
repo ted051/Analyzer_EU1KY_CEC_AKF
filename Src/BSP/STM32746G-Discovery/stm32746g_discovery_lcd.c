@@ -1060,15 +1060,16 @@ void BSP_LCD_DrawPixel(uint16_t Xpos, uint16_t Ypos, uint32_t RGB_Code)
   uint16_t X= Xpos;
   uint16_t Y= Ypos;
 
+  if(X>479) return;//X=479;// limit x
+  if(Y>271) return;//Y=271;// limit y
+
   if(LCD_Get_Orientation()==1)  //DH1AKF 0..180 degree (rotate screen)
   {
-      X=479-Xpos;
-      Y=271-Ypos;
+
+      X=479-X;// rotation 180 degrees
+      Y=271-Y;
   }
-  else {
-    X=Xpos;
-    Y=Ypos;
-    }
+
   /* Write data value to all SDRAM memory */
   if(hLtdcHandler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_RGB565)
   { /* RGB565 format */
