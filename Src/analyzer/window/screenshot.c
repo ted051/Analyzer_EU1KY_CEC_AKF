@@ -377,14 +377,28 @@ void SCREENSHOT_Save(const char *fname)
     if (FR_OK != fr) goto CRASH_WR;
     int x = 0;
     int y = 0;
-    for (y = 271; y >= 0; y--)
-    {
-        uint32_t line[480];
-        BSP_LCD_ReadLine(y, line);
-        for (x = 0; x < 480; x++)
+    if(LCD_Get_Orientation()==1){
+        for (y = 0; y <272; y++)
         {
-            fr = f_write(&fo, &line[x], 3, &bw);
-            if (FR_OK != fr) goto CRASH_WR;
+            uint32_t line[480];
+            BSP_LCD_ReadLine(y, line);
+            for (x = 479; x >=0; x--)
+            {
+                fr = f_write(&fo, &line[x], 3, &bw);
+                if (FR_OK != fr) goto CRASH_WR;
+            }
+        }
+    }
+    else{
+        for (y = 271; y >= 0; y--)
+        {
+            uint32_t line[480];
+            BSP_LCD_ReadLine(y, line);
+            for (x = 0; x < 480; x++)
+            {
+                fr = f_write(&fo, &line[x], 3, &bw);
+                if (FR_OK != fr) goto CRASH_WR;
+            }
         }
     }
     f_close(&fo);
@@ -412,17 +426,33 @@ void lodepng_free(void* ptr)
     SDRH_free(ptr);
 }
 
-//Exhange R and B colors for proper PNG encoding
+//Exhange Red and Blue colors for proper PNG encoding
 static void _Change_B_R(uint32_t* image)
 {
-    uint32_t i;
+    uint32_t i, px, c, r, b;
     uint32_t endi = (uint32_t)LCD_GetWidth() * (uint32_t)LCD_GetHeight();
-    for (i = 0; i < endi; i++)
-    {
-        uint32_t c = image[i];
-        uint32_t r = (c >> 16) & 0xFF;
-        uint32_t b = c & 0xFF;
-        image[i] = (c & 0xFF00FF00) | r | (b << 16);
+    if(LCD_Get_Orientation()==1){
+        for (i = 0; i < endi/2; i++){
+
+                c = image[i];
+                r = (c >> 16) & 0xFF;
+                b = c & 0xFF;
+                px=(c & 0xFF00FF00) | r | (b << 16);
+                c = image[endi-i-1]; // [(271-i)*480-k]
+                r = (c >> 16) & 0xFF;
+                b = c & 0xFF;
+                image[i] = (c & 0xFF00FF00) | r | (b << 16);
+                image[endi-i-1]=px;// (271-i)*480-k
+
+        }
+    }
+    else{
+        for (i = 0; i < endi; i++){
+            uint32_t c = image[i];
+            uint32_t r = (c >> 16) & 0xFF;
+            uint32_t b = c & 0xFF;
+            image[i] = (c & 0xFF00FF00) | r | (b << 16);
+        }
     }
 }
 

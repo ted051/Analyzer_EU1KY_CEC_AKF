@@ -204,7 +204,7 @@ static void DrawMeasureLC(DSP_RX rx, int findedIndex, uint32_t findedFreq, int i
     {
         sprintf(str, "E: n/a");
     }
-    LCD_FillRect(LCD_MakePoint(PANEL_LEFT2 + 120, 189),LCD_MakePoint(PANEL_LEFT2 + 245, 225),BACK_COLOR);
+    LCD_FillRect(LCD_MakePoint(PANEL_LEFT2 + 119, 189),LCD_MakePoint(PANEL_LEFT2 + 245, 225),BACK_COLOR);
     //LCD_FillRect(LCD_MakePoint(1, 89),LCD_MakePoint(270, 235), BACK_COLOR); //LCD_BLACK);
 
     FONT_Write(FONT_FRANBIG, LCD_WHITE, BACK_COLOR, PANEL_LEFT2 + 120, 190, str);

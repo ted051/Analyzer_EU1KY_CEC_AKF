@@ -81,7 +81,7 @@ typedef enum
 
 // Highligtht IARU regions   19.09.2020 DH1AKF // DG2DRF
 
-// region 1            10.04.2020 DG2DRF
+// Region 1            10.04.2020 DG2DRF
 
 static const HAM_BANDS hamBands1[] =
 {

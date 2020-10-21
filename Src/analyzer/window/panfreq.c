@@ -482,7 +482,7 @@ int Region=CFG_GetParam(CFG_PARAM_REGION);
     else if (0 == strcmp(tb->text, "70cm"))// && (CFG_GetParam(CFG_PARAM_BAND_FMAX) >= 445000000ul))
     {
         _f1 = 430000;
-        i=17;
+        i=16;
         if(Region==0) _bs = BS10M;
         else BS20M;
     }

@@ -543,8 +543,8 @@ void PixPict(unsigned int x0, unsigned int y0, char* bmp){// x0/y0 upper left co
 
 uint32_t col,l=0;
 uint16_t sp,z;
-    for(z=y0;z<271-y0;z++){// center the picture
-        for(sp=x0;sp<479-x0;sp++){
+    for(z=y0;z<272-y0;z++){// center the picture
+        for(sp=x0;sp<480-x0;sp++){
             col=(bmp[l++])<<16;
             col+=(bmp[l++])<<8;
             col+=bmp[l++];
