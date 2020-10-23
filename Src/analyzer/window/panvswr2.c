@@ -2613,7 +2613,6 @@ void Store(void) //             Button 2
 
 void DiagType(void) //                      Button3
 {
-    int k;
     autofast=0;
     // toggle Diagram Type
     if (grType == GRAPH_VSWR)
@@ -3019,10 +3018,14 @@ void DrawLoadStoreStatus()
 void PANVSWR2_Proc(void)// **************************************************************************+*********
 {
 int Beeper=0;
-    activeLayerX=1;
     BSP_LCD_SelectLayer(activeLayerX);
     LCD_ShowActiveLayerOnly();
     cursorVisible=0;// in the beginning not visible
+    LCD_FillAll(BackGrColor);
+    activeLayerX=!BSP_LCD_GetActiveLayer();
+    BSP_LCD_SelectLayer(activeLayerX);
+    LCD_FillAll(BackGrColor);
+    activeLayerX=1;
     ClearScreen=1;
     autofast=0;
     Saving=0;
