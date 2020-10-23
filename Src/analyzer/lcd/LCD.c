@@ -53,6 +53,8 @@ void LCD_BacklightOn(void)
     BSP_LCD_DisplayOn();
 }
 
+
+
 void LCD_BacklightOff(void)
 {
     BSP_LCD_DisplayOff();

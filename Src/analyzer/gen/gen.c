@@ -177,6 +177,22 @@ else if (frqu1 > CFG_GetParam(CFG_PARAM_SI5351_MAX_FREQ))
 }
 
 
+void GEN_SetClk2Freq(uint32_t frqu1){// ** WK ** 22.10.2020
+if(frqu1==0) {
+    gen.Off();
+    return;
+}
+
+if (frqu1 > 3*CFG_GetParam(CFG_PARAM_SI5351_MAX_FREQ))
+        gen.SetTX(frqu1 / 5);
+
+else if (frqu1 > CFG_GetParam(CFG_PARAM_SI5351_MAX_FREQ))
+        gen.SetTX(frqu1 / 3);
+    else
+        gen.SetTX(frqu1);
+}
+
+
 uint32_t GEN_GetLastFreq()
 {
     return lastSetFreq;

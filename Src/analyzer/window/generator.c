@@ -36,7 +36,7 @@ static BANDSPAN *pBs1;
 static LCDPoint pt;
 static uint16_t Old_TimeFlag;
 static bool mod_AM, mod_FM ;
-
+static uint32_t fxG;
 void Sleep(uint32_t ms);
 
 static void ShowF()
@@ -60,6 +60,31 @@ uint8_t i,j;
     FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 0, 72, str );
 }
 
+void FDecrG(uint32_t step)
+{
+    uint32_t MeasurementFreq = CFG_GetParam(CFG_PARAM_GEN_F);
+    MeasurementFreq -= step;
+    if(MeasurementFreq < CFG_GetParam(CFG_PARAM_BAND_FMIN)) MeasurementFreq=CFG_GetParam(CFG_PARAM_BAND_FMIN);;
+    CFG_SetParam(CFG_PARAM_GEN_F, MeasurementFreq);
+    fChanged = 1;
+    freqMHzf=MeasurementFreq/1000000.;
+    fxG=MeasurementFreq;
+    Sleep(50);
+}
+
+ void FIncrG(uint32_t step)
+{
+    uint32_t MeasurementFreq = CFG_GetParam(CFG_PARAM_GEN_F);
+    MeasurementFreq += step;
+    if(MeasurementFreq > CFG_GetParam(CFG_PARAM_BAND_FMAX)) MeasurementFreq=CFG_GetParam(CFG_PARAM_BAND_FMAX);;
+    CFG_SetParam(CFG_PARAM_GEN_F, MeasurementFreq);
+    fChanged = 1;
+    freqMHzf=MeasurementFreq/1000000.;
+    fxG=MeasurementFreq;
+    Sleep(50);
+}
+
+
 static void GENERATOR_SwitchWindow(void)
 {
     rqExit = 1;
@@ -67,54 +92,54 @@ static void GENERATOR_SwitchWindow(void)
 
 static void GENERATOR_FDecr_500k(void)
 {
-    FDecr(f_maxstep);
+    FDecrG(f_maxstep);
 }
 static void GENERATOR_FDecr_100k(void)
 {
-    FDecr(100000);
+    FDecrG(100000);
 }
 static void GENERATOR_FDecr_10k(void)
 {
-    FDecr(10000);
+    FDecrG(10000);
 }
 static void GENERATOR_FDecr_1k(void)
 {
-    FDecr(1000);
+    FDecrG(1000);
 }
 static void GENERATOR_FDecr_100Hz(void)// WK
 {
-    FDecr(100);
+    FDecrG(100);
 }
 static void GENERATOR_FDecr_10Hz(void)// WK
 {
-    FDecr(10);
+    FDecrG(10);
 }
 
 static void GENERATOR_FIncr_10Hz(void)
 {
-    FIncr(10);
+    FIncrG(10);
 }
 
 static void GENERATOR_FIncr_100Hz(void)
 {
-    FIncr(100);
+    FIncrG(100);
 }
 
 static void GENERATOR_FIncr_1k(void)
 {
-    FIncr(1000);
+    FIncrG(1000);
 }
 static void GENERATOR_FIncr_10k(void)
 {
-    FIncr(10000);
+    FIncrG(10000);
 }
 static void GENERATOR_FIncr_100k(void)
 {
-    FIncr(100000);
+    FIncrG(100000);
 }
 static void GENERATOR_FIncr_500k(void)
 {
-    FIncr(f_maxstep);
+    FIncrG(f_maxstep);
 }
 
 
@@ -134,13 +159,6 @@ static void GENERATOR_SetFreq(void)
     Sleep(200);
 }
 
-/*void GENERATOR_ChgColrs(void){
-    if(ColourSelection==0)ColourSelection=1;
-    else ColourSelection=0;
-    SetColours();
-    redrawWindowCompl = 1;
- //   while(TOUCH_IsPressed());
-}*/
 
 void GENERATOR_AM(void){
 int k;
@@ -314,7 +332,7 @@ GENERATOR_REDRAW:
     rqExit = 0;
     fChanged = 1;// WK
     redrawWindow = 0;
-
+    HS_SetPower(2, 3, 1);// CLK2 8mA
     while(1)
     {
         if(redrawWindowCompl == 1)   goto GENERATOR_REDRAW;
@@ -332,8 +350,11 @@ GENERATOR_REDRAW:
                 }
                 if (fChanged)
                 {
+                    fChanged=0;
                     ShowF();
                     GEN_SetMeasurementFreq(CFG_GetParam(CFG_PARAM_GEN_F));
+                    GEN_SetClk2Freq(CFG_GetParam(CFG_PARAM_GEN_F));// ***********
+                    CFG_Flush();// save all settings
                 }
                 speedcnt++;
                 if (speedcnt < 5)
@@ -346,7 +367,7 @@ GENERATOR_REDRAW:
                 }
             }
         }
-        Sleep(50);
+        /*Sleep(50);
         speedcnt = 0;
         f_maxstep = 500000;
         if (fChanged)
@@ -358,7 +379,8 @@ GENERATOR_REDRAW:
         }
         if(TOUCH_Poll(&pt)!=0) {
                 continue;
-        }
+        }*/
+        Sleep(50);
         k++;
         if(k>=100){
             k=0;
