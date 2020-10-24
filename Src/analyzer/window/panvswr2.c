@@ -804,21 +804,20 @@ static void DrawGrid(GRAPHTYPE grType)  //
 {
 int i;
 
-    if((grType != grTypeOld)||(ClearScreen==1)){
-        LCD_FillAll(BackGrColor);
+   /* if((grType != grTypeOld)||(ClearScreen==1)){
+      //  LCD_FillAll(BackGrColor);
 //        cursorVisible=0;
         grTypeOld=   grType;
         ClearScreen=0;
     }
-    else
+    else*/
 
     LCD_FillRect((LCDPoint){X0-30 ,Y0},(LCDPoint){X0 + WWIDTH+2,Y0+WHEIGHT+3},BackGrColor);
     //cursorVisible=0;
     FONT_Write(FONT_FRAN, LCD_BLACK, LCD_COLOR_LIGHTGREEN, X0+1, 0, modstr);
-    //FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 2, 110, "<");
-    //FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 460, 110, ">");
     uint32_t fstart;
     uint32_t pos = modstrw + 8+ X0;//WK
+    LCD_FillRect((LCDPoint){pos ,0},(LCDPoint){479,20},BackGrColor);
     if (grType == GRAPH_RX)// R/X
     {
         //  Print colored R/X
@@ -829,7 +828,6 @@ int i;
         FONT_Write(FONT_FRAN, LCD_BLACK, LCD_RED, pos, 0, "X");
         pos += FONT_GetStrPixelWidth(FONT_FRAN, "X") + 1;
     }
-
 
     if (0 == CFG_GetParam(CFG_PARAM_PAN_CENTER_F))
     {
@@ -953,14 +951,6 @@ int i;
                 LCD_HLine(LCD_MakePoint(X0, WY(yofs)), WWIDTH, WGRIDCOLOR);
             }
         }
-        /*
-        LCD_FillRect((LCDPoint){0 ,155},(LCDPoint){X0 -22,215},BackGrColor);
-
-        LCD_Rectangle((LCDPoint){0 ,155},(LCDPoint){X0 -22,215},CurvColor);
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, 4, 160, "Log");
-        if(loglog==1)
-            FONT_Write(FONT_FRAN, CurvColor, BackGrColor, 4, 190, "Log");
-            */
     }
 }
 
@@ -2516,7 +2506,7 @@ void DrawFootText(void)
     if(Switch == 0)
     {
         TEXTBOX_SetText(&SWR1,1,"Menu2");
-        TEXTBOX_SetText(&SWR1,5,"Auto(fast)");
+        TEXTBOX_SetText(&SWR1,5,"Auto (fast)");
         TEXTBOX_SetText(&SWR1,6,"Scan");
 
         //DrawLoadStoreStatus();
@@ -2665,6 +2655,7 @@ void Auto_Fast(void) // Auto(fast)            Button5
         CFG_Flush();
         redrawRequired=1;
     }
+    DrawFootText();
 }
 
 //Use by Frequency Sweep Measurement
@@ -3017,15 +3008,12 @@ void DrawLoadStoreStatus()
 
 void PANVSWR2_Proc(void)// **************************************************************************+*********
 {
-int Beeper=0;
+int Beeper=0, FirstTouch=0;
+
+    activeLayerX=1;
     BSP_LCD_SelectLayer(activeLayerX);
     LCD_ShowActiveLayerOnly();
     cursorVisible=0;// in the beginning not visible
-    LCD_FillAll(BackGrColor);
-    activeLayerX=!BSP_LCD_GetActiveLayer();
-    BSP_LCD_SelectLayer(activeLayerX);
-    LCD_FillAll(BackGrColor);
-    activeLayerX=1;
     ClearScreen=1;
     autofast=0;
     Saving=0;
@@ -3083,7 +3071,6 @@ int Beeper=0;
     {
         modstrw = FONT_GetStrPixelWidth(FONT_FRAN, modstr);
     }
-
     if (!isMeasured)
     {
         DrawGrid(1);
@@ -3092,6 +3079,7 @@ int Beeper=0;
     }
     else
         RedrawWindow();
+
 
     TEXTBOX_InitContext(&SWR1);
 
@@ -3104,8 +3092,13 @@ int Beeper=0;
         Sleep(0); //for autosleep to work
         if (TOUCH_Poll(&pt))
         {
-            //LCD_FillAll(BackGrColor);//
-
+            if(FirstTouch<1){
+                FirstTouch++;
+                BSP_LCD_SelectLayer(activeLayerX);
+                LCD_FillAll(BackGrColor);
+                BSP_LCD_SelectLayer(!activeLayerX);
+                LCD_FillAll(BackGrColor);
+            }
             if(pt.y<60) Frequency();//              Special Functions (invisible)
             else if((pt.y<190)&&(pt.x>60)&&(pt.x<400))
             {
@@ -3143,16 +3136,32 @@ int Beeper=0;
                     autofast=0;
                     //redrawRequired=1;
                 }
-                else
+               // else
+               //    Sleep(100);
+            }
+            if (TEXTBOX_HitTest(&SWR1)) {
+                if (rqExitSWR)
+                {
+                    rqExitSWR=false;
+                    while(TOUCH_IsPressed());
+                    autofast = 0;
                     Sleep(100);
+
+                    free(SavedValues1);
+                    free(SavedValues2);
+                    free(SavedValues3);
+
+                    NotSleepMode = 0;
+                    return;
+                }
             }
             if(BeepOn1==1&&Beeper==1){
-
                 UB_TIMER2_Init_FRQ(880);
                 UB_TIMER2_Start();
                 Sleep(100);
                 UB_TIMER2_Stop();
                 Beeper=0;
+                redrawRequired=1;//in case of "Save Snapshot"
             }
         }
         else
@@ -3161,33 +3170,6 @@ int Beeper=0;
             beep=0;
         }
 
-        if (TEXTBOX_HitTest(&SWR1))
-        {
-            if (rqExitSWR)
-            {
-                rqExitSWR=false;
-                while(TOUCH_IsPressed());
-                autofast = 0;
-                Sleep(100);
-
-                free(SavedValues1);
-                free(SavedValues2);
-                free(SavedValues3);
-
-                NotSleepMode = 0;
-                return;
-            }
-            redrawRequired=1;//in case of "Save Snapshot"
-        }
-
-        if(redrawRequired!=0)
-        {
-            RedrawWindow();
-            DrawFootText();
-            //DrawCursor();
-            //cursorVisible=1;
-            redrawRequired=0;
-        }
         if(autofast==0){
             holdScale=0;
         }
@@ -3200,6 +3182,12 @@ int Beeper=0;
             holdScale=1;
             redrawRequired=0;
             autosleep_timer = 30000; //CFG_GetParam(CFG_PARAM_LOWPWR_TIME);
+        }
+        if(redrawRequired!=0)
+        {
+            RedrawWindow();
+            DrawFootText();
+            redrawRequired=0;
         }
         LCD_ShowActiveLayerOnly();
         NotSleepMode = autofast;

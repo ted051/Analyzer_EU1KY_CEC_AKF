@@ -126,7 +126,7 @@ void TRACK_Beep(int duration)
 
 static void DrawAutoText(void)
 {
-    static const char* atxt = "  Auto ";
+    static const char* atxt = "  Auto  ";
     if (0 == autofast)
         FONT_Print(FONT_FRAN, TextColor, BackGrColor, 437, trackMenus[5][BUTTON_TOP] + 5,  atxt);
     else
@@ -954,9 +954,10 @@ void Track_Proc(void)
             Sleep(5);
         }
 
-        if (TOUCH_Poll(&pt)){
-
+        if (TOUCH_Poll(&pt))
+        {
             int touchIndex = GetTouchIndex(pt, trackMenus, trackMenu_Length);
+
             //Play Beep
             if (touchIndex != -1)
             {
