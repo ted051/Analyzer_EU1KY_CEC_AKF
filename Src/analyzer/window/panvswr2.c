@@ -984,7 +984,7 @@ static void ScanRXFast(void)
             rx = crealf(rx) + 0.0fi;
         values[i] = rx;
         LCDPoint pt;
-        if ((0 == (i % 32)) && TOUCH_Poll(&pt))
+        if ((0 == (i % 32)) && TOUCH_Poll(&pt))// break with a simple touch
             break;
     }
     GEN_SetMeasurementFreq(0);
@@ -2678,6 +2678,7 @@ void Scan(void) // Scan  or  Frequency        Button6
     {
         if (0 == autofast)
         {
+            LCD_ShowActiveLayerOnly();
             FONT_Write(FONT_FRANBIG, LCD_RED, LCD_BLACK, 180, 100, "  Scanning...  ");
             ScanRX(0);
         }
@@ -3028,10 +3029,11 @@ int Beeper=0, FirstTouch=0;
     holdScale=0;
     f1=CFG_GetParam(CFG_PARAM_PAN_F1);
     GetBS(f1/1000);
+    BSP_LCD_SelectLayer(activeLayerX);
     LCD_FillAll(BackGrColor);
     FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 120, 100, "Panoramic scan mode");
-    Sleep(1000);
-    while(TOUCH_IsPressed());
+    Sleep(500);
+
 
     //ianlee
     //Managment Memory
@@ -3080,25 +3082,25 @@ int Beeper=0, FirstTouch=0;
     else
         RedrawWindow();
 
-
     TEXTBOX_InitContext(&SWR1);
 
     TEXTBOX_Append(&SWR1, (TEXTBOX_t*)tb_PANVSWR);
     TEXTBOX_DrawContext(&SWR1);
+
     DrawFootText();
+
+    while(!TOUCH_IsPressed());
+
+    BSP_LCD_SelectLayer(!activeLayerX);
+    LCD_FillAll(BackGrColor);
+    BSP_LCD_SelectLayer(activeLayerX);
+    LCD_FillAll(BackGrColor);
 
     for(;;)
     {
         Sleep(0); //for autosleep to work
         if (TOUCH_Poll(&pt))
         {
-            if(FirstTouch<1){
-                FirstTouch++;
-                BSP_LCD_SelectLayer(activeLayerX);
-                LCD_FillAll(BackGrColor);
-                BSP_LCD_SelectLayer(!activeLayerX);
-                LCD_FillAll(BackGrColor);
-            }
             if(pt.y<60) Frequency();//              Special Functions (invisible)
             else if((pt.y<190)&&(pt.x>60)&&(pt.x<400))
             {

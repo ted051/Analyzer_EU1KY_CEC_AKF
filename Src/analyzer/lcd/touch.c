@@ -62,7 +62,8 @@ uint8_t TOUCH_IsPressed(void)
 //KD8CEC
 int GetTouchIndex(LCDPoint pt1, const int checkButtons[][4], int checkCount)
 {
-    #define TOUCH_TOP_MARGIN 5
+   // #define TOUCH_TOP_MARGIN 5
+    #define TOUCH_TOP_MARGIN 0
     int rst = -1;
 
     for (int i = 0; i < checkCount; i++)
@@ -77,4 +78,20 @@ int GetTouchIndex(LCDPoint pt1, const int checkButtons[][4], int checkCount)
     return -1;
 }
 
+
+int GetTouchIndex1(LCDPoint pt1, const int checkButtons[][4], int checkCount)
+{
+    int rst = -1;
+
+    for (int i = 0; i < checkCount; i++)
+    {
+        if (pt1.x >= checkButtons[i][BUTTON_LEFT] && pt1.x <= checkButtons[i][BUTTON_RIGHT] &&
+            pt1.y + TOUCH_TOP_MARGIN >= checkButtons[i][BUTTON_TOP] && pt1.y <= checkButtons[i][BUTTON_BOTTOM])
+        {
+
+            return i;
+        }
+    }
+    return -1;
+}
 
