@@ -1527,8 +1527,8 @@ void DrawX_Scale(float MaxZ, float MinZ)
         else
             sprintf(buf, str, labelValue); //Get label string in buf
         yofs=factorA*labelValue+factorB;
-
-        FONT_Write(FONT_FRAN, LCD_RED, BackGrColor, 440, WY(yofs) - 12, buf);
+        if(yofs<WHEIGHT-12)
+            FONT_Write(FONT_FRAN, LCD_RED, BackGrColor, 425, WY(yofs) - 12, buf);
     }
 
 }
@@ -1707,8 +1707,8 @@ static void DrawRX(int SelQu, int SelEqu)// SelQu=1, if quartz measurement  SelE
             sprintf(buf, str, labelValue); //Get label string in buf
 
         yofs = ((int)roundf(((labelValue - graphmin_i) * WHEIGHT) / grange_i) + 1);
-
-        FONT_Write(FONT_FRAN, LCD_RED, BackGrColor, 440, WY(yofs) - 12, buf);// WK
+        if(yofs<WHEIGHT-12)
+            FONT_Write(FONT_FRAN, LCD_RED, BackGrColor, 425, WY(yofs) - 12, buf);// WK
     }
 
     //Now draw X graph
