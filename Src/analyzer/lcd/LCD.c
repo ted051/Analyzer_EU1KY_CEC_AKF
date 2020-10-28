@@ -268,7 +268,7 @@ void LCD_Line(LCDPoint a, LCDPoint b, LCDColor color)
             LCD_HLine(LCD_MakePoint(b.x, a.y), a.x - b.x+1, color);
         return;
     }
-    if((a.x==b.x)||(a.x-b.x<=1)||(b.x-a.x<=1)){
+    if((a.x==b.x)||(a.x-b.x==1)||(b.x-a.x==1)){
         if(b.y>a.y)
             LCD_VLine(LCD_MakePoint(a.x, a.y), b.y - a.y+1, color);
         else
