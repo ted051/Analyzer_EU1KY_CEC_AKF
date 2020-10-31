@@ -3024,7 +3024,6 @@ int Beeper=0, FirstTouch=0;
     AutoCursor=CFG_GetParam(CFG_PARAM_CURSOR);
     ManualCursor=0;
     Switch=0;// menu 1
-    //SWRTone=0;
     isStored=0;
     holdScale=0;
     f1=CFG_GetParam(CFG_PARAM_PAN_F1);
@@ -3117,9 +3116,11 @@ int Beeper=0, FirstTouch=0;
             }
             else if((pt.y>205)&&(pt.y<235)&&(pt.x >=X0)){// Set Cursor
                 cursorPos=pt.x - X0;
+                if(cursorPos>WWIDTH-10) cursorPos=WWIDTH-10;
                 ManualCursor=1;
                 redrawRequired=1;
                 Beeper=1;
+                Sleep(200);
             }
             else if((pt.x>=0)&&(pt.x<=44))
             {
@@ -3129,17 +3130,13 @@ int Beeper=0, FirstTouch=0;
                     if(cursorChangeCount>=5)
                         Beeper=0;
                     autofast=0;
-                    //redrawRequired=1;
                 }
                 else if((pt.y>=132)&&(pt.y<=167)){// ">"
                     IncrCursor();
                     if(cursorChangeCount>=5)
                         Beeper=0;
                     autofast=0;
-                    //redrawRequired=1;
                 }
-               // else
-               //    Sleep(100);
             }
             if (TEXTBOX_HitTest(&SWR1)) {
                 if (rqExitSWR)

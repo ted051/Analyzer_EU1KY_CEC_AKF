@@ -141,7 +141,6 @@ static int GetIndexForFreq(uint32_t fhz)
             idx = (int)(fhz / OSL_SMALL_SCAN_STEP) - CFG_GetParam(CFG_PARAM_BAND_FMIN) / OSL_SMALL_SCAN_STEP;
         else
             idx = (int)(fhz / OSL_SCAN_STEP) - OSL_FREQUENCY_BORDER / OSL_SCAN_STEP + MID_IDX;
-        return idx;
     }
     return idx;
 }

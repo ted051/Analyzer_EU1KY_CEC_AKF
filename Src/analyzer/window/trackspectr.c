@@ -97,6 +97,7 @@ static char tmpBuff[20];
 
 static uint32_t activeLayerS21;
 static int cursorVisibleS21;
+static int firstRun;
 
 //=====================================================================
 //Menu
@@ -272,14 +273,18 @@ static void DrawCursorS()
 }
 
 static void DrawCursorS21(){
+int visible = cursorVisibleS21;
+
     DrawCursorS();
     if(BSP_LCD_GetActiveLayer()!=activeLayerS21){
         BSP_LCD_SelectLayer(activeLayerS21);
+        cursorVisibleS21=visible;
         DrawCursorS();
         BSP_LCD_SelectLayer((1+activeLayerS21)%2);
     }
     else{
         BSP_LCD_SelectLayer((1+activeLayerS21)%2);
+        cursorVisibleS21=visible;
         DrawCursorS();
         BSP_LCD_SelectLayer(activeLayerS21);
     }
@@ -311,9 +316,11 @@ static void MoveCursor(int moveDirection)
 
     if (cursorChangeCount++ < 5){
         DrawMeasuredValues();//DH1AKF  25.10.2020
-        Sleep(10); //Slow down at first steps
+        Sleep(20); //Slow down at first steps
     }
+    Sleep(2);
 }
+#define linediv 10
 
 static void Track_DrawGrid(int justGraphDraw)  //
 {
@@ -337,8 +344,8 @@ static void Track_DrawGrid(int justGraphDraw)  //
         sprintf(buf, " graph: %.3f MHz +/- %s", (float)f1/1000000, BSSTR_TRACK_HALF[span21]);
     }
     LCD_FillRect(LCD_MakePoint(40, 15), LCD_MakePoint(459 , 225), BackGrColor);
-
-    if (!justGraphDraw)
+    cursorVisibleS21=0;
+    if (justGraphDraw==0)
     {
        // LCD_FillAll(BackGrColor);
         //Vertical Numbers
@@ -369,7 +376,7 @@ static void Track_DrawGrid(int justGraphDraw)  //
 
     //Draw F grid and labels
     int lmod = 5;
-    int linediv = 10; //Draw vertical line every linediv pixels
+     //Draw vertical line every linediv pixels
 
     for (i = 0; i <= WWIDTH/linediv; i++)
     {
@@ -456,7 +463,7 @@ static void Scan21(int selector)
 
     for(i = 0; i <= WWIDTH; i++)
     {
-        valuesdBI[i] = OSL_TXTodB(valuesdBI[i], valuesmI[i]);
+        valuesdBI[i] = OSL_TXTodB(valuesdBI[i], valuesmI[i]);//valuesdBI = frequ1 !!
     }
 
     FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 420, 0, "     ");
@@ -709,23 +716,27 @@ void TrackTouchExecute(LCDPoint pt){
         if (autofast == 0)
         {
             autofast = 1;
-            BSP_LCD_SelectLayer(activeLayerS21);
-            sprintf(tmpBuff, "AUTO SPEED : [%d] ", autoMeasureSpeed);
-            FONT_Write(FONT_FRAN, LCD_BLACK, LCD_RED, 50, 0, tmpBuff);
+            //BSP_LCD_SelectLayer(activeLayerS21);
+            sprintf(tmpBuff, " AUTO SPEED : [%d] ", autoMeasureSpeed);
+            FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 55, 0, tmpBuff);
             TRACK_DrawFootText();
-            BSP_LCD_SelectLayer((1+activeLayerS21)%2);
-            FONT_Write(FONT_FRAN, LCD_BLACK, LCD_RED, 50, 0, tmpBuff);
+            //BSP_LCD_SelectLayer((1+activeLayerS21)%2);
+            //FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 65, 0, tmpBuff);
             TRACK_DrawFootText();
+            firstRun=1;
+            LCD_FillRect(LCD_MakePoint(40, 15), LCD_MakePoint(459 , 225), BackGrColor);
+            Track_DrawGrid(1);
             //BSP_LCD_SelectLayer(activeLayerS21);
         }
         else
         {
             autofast = 0;
-            sprintf(tmpBuff, "                   ");
-            FONT_Write(FONT_FRAN, LCD_BLACK, LCD_RED, 50, 0, tmpBuff);
+            FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 0, 0, "AA EU1KY-KD8CEC-DH1AKF   ");
             TRACK_DrawFootText();
+            if(cursorVisibleS21==0)
+                DrawCursorS21();
+            cursorVisibleS21=1;
         }
-        FONT_Write(FONT_FRAN, LCD_BLACK, LCD_RED, 50, 0, tmpBuff);
        // TRACK_DrawFootText();
         saveAutofast=autofast;
         return;
@@ -739,12 +750,12 @@ void TrackTouchExecute(LCDPoint pt){
             break;
         }
         case 9: { // < Button
-            //if(autofast==0)
+            if(autofast==0)
                 MoveCursor(-1);
             break;
         }
         case 10:{          // > Button
-            //if(autofast==0)
+            if(autofast==0)
                 MoveCursor(1);
             break;
         }
@@ -790,6 +801,7 @@ void TrackTouchExecute(LCDPoint pt){
             break;
         }
         case 7:{    // SetCursor
+            if(autofast!=0) break;
             uint16_t cursorNew=pt.x;
             if(pt.x<X0) cursorNew=X0;
             if(pt.x>X0+WWIDTH) cursorNew=WWIDTH;
@@ -799,94 +811,96 @@ void TrackTouchExecute(LCDPoint pt){
     }// end of if..else
 }
 
+void SetMeasPointS21(uint32_t i, int yofsNew, int yofs){
+int lmod = 5;
+int k, length, pos =WY(yofs), posNew = WY(yofsNew);
+
+    if(i==WWIDTH)  firstRun=0;
+
+    if (posNew > Y0+ WHEIGHT) posNew = Y0 + WHEIGHT;
+
+    else if (posNew < Y0) return;//posNew = Y0;
+
+    if((i%linediv==0)||(i%(linediv*lmod)==1)){// delete the old pixel(s)
+        LCD_SetPixel(LCD_MakePoint(i+X0, pos), WGRIDCOLOR);
+        if(FatLines){
+            LCD_SetPixel(LCD_MakePoint(i+X0, pos-1), WGRIDCOLOR);// WK
+        }
+    }
+    else{
+        LCD_SetPixel(LCD_MakePoint(i+X0, pos), BackGrColor);
+        if(FatLines){
+            LCD_SetPixel(LCD_MakePoint(i+X0, pos-1), BackGrColor);// WK
+        }
+    }
+    if(i==cursorPos){
+        LCD_SetPixel(LCD_MakePoint(i+X0, posNew), LCD_COLOR_RED);// set the new pixel(s)
+        if(FatLines){
+            LCD_SetPixel(LCD_MakePoint(i+X0, posNew-1), LCD_COLOR_RED);// WK
+        }
+
+    }
+    else{
+        LCD_SetPixel(LCD_MakePoint(i+X0, posNew), CurvColor);// set the new pixel(s)
+        if(FatLines){
+            LCD_SetPixel(LCD_MakePoint(i+X0, posNew-1), CurvColor);// WK
+        }
+    }
+}
 
 static void Scan21Fast()
 {
-//#define FAST_DIVIDE_FREQ 12
-#define FAST_DIVIDE_FREQ autoMeasureSpeed
-
-    //float inputMI;
-    uint32_t i, nScanCount;
-    uint32_t deltaF, returni=0;
-
-    //DSP_MeasureTrack(freq1, 1, 1, 1); //Fake initial run to let the circuit stabilize
-    //inputMI = DSP_MeasuredTrackValue();
-    //Sleep(20);
+LCDPoint pt;
+uint32_t i, k, m, nScanCount;
+uint32_t deltaF, returni=0;
+int i0, i1, i2, yofs, yofsNew;
+float newValue;
 
     DSP_MeasureTrack(freq1, 1, 1, 1);
-    //inputMI = DSP_MeasuredTrackValue();
 
     deltaF=(BSVALUES_TRACK[span21] * 1000) / WWIDTH;
     nScanCount = CFG_GetParam(CFG_PARAM_PAN_NSCANS);
-int newDispTag = 0;
-
     for(i = 0; i <= WWIDTH; i++)
     {
         freq1 = fstart + i * deltaF;
-
-        if(i % 20 == 0)// "My secret waepon against flickering" DH1AKF 28.10.2020
-        {
-            newDispTag = ! newDispTag;
-            if (newDispTag)
-            {
-                FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 440, 20, "TS");
-            }
-            else
-            {
-                FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 440, 20, "dP");
-            }
-        }
-
-
-        if (i % FAST_DIVIDE_FREQ != 0)
-        {
-            continue;
-        }
-
-
-        DSP_MeasureTrack(freq1, 1, 1, nScanCount);
-        valuesmI[i] = DSP_MeasuredTrackValue();
-        valuesdBI[i] = OSL_TXTodB(freq1, valuesmI[i]);
-        //  Break/Exit by Touch
-        LCDPoint pt;
-        if ((0 == (i % 32)) && TOUCH_Poll(&pt)){
+        k= i / autoMeasureSpeed;                                           //  Break/Exit by Touch
+        if ((0 == (i % 80)) && TOUCH_Poll(&pt)){
             returni=1;
             break;
         }
-      /*  if (TOUCH_Poll(&pt1))
+
+        if (i % autoMeasureSpeed == 0)
         {
-            TrackTouchExecute(pt1);
-            if((touchIndex!=-1)||(touchIndex==0)){
-                returni=1;// Exit
-                break;
+            DSP_MeasureTrack(freq1, 1, 1, nScanCount);
+            valuesmI[i] = DSP_MeasuredTrackValue();
+            newValue = OSL_TXTodB(freq1, valuesmI[i]);
+            yofsNew = WHEIGHT+Y0+ newValue * displayRate;
+            yofs = WHEIGHT+Y0+ valuesdBI[i] * displayRate;
+            valuesdBI[i]=newValue;
+            if((yofs!=yofsNew)||(firstRun==1))
+                SetMeasPointS21(i, yofsNew, yofs);
+        }
+        if((i==WWIDTH)||(i % autoMeasureSpeed != 0)){
+            if(k>=1){
+                i0 = k * autoMeasureSpeed;
+                i2 = i0 - autoMeasureSpeed;
+                for (m= i2 ; m < i0; m++){
+                    //Interpolate previous intermediate values linear
+                    valuesmI[m] = valuesmI[i2] + (valuesmI[i0] - valuesmI[i2]) * (m-i2) / autoMeasureSpeed;
+                    newValue = valuesdBI[i2] + (valuesdBI[i0] - valuesdBI[i2]) * (m-i2) / autoMeasureSpeed;
+                    yofsNew = WHEIGHT+Y0+ newValue * displayRate;
+                    yofs = WHEIGHT+Y0+ valuesdBI[m] * displayRate;
+                    valuesdBI[m]=newValue;
+                    if((yofs!=yofsNew)||(firstRun==1))
+                        SetMeasPointS21(m, yofsNew, yofs);
+                }
             }
-        }*/
+        }
     }
     if(returni==1) return;
-    DrawMeasuredValues();
-    //FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 420, 0, "     ");
-   // GEN_SetMeasurementFreq(0);
     isMeasured = 1;
-
-    //Interpolate intermediate values
-    for(i = 1; i <= WWIDTH; i++)
-    {
-        //uint32_t fr = i % FAST_DIVIDE_FREQ;
-
-        if (0 == i % FAST_DIVIDE_FREQ)
-            continue;
-
-        int fi0, fi1, fi2;
-
-        fi0 = i / FAST_DIVIDE_FREQ;
-        fi2 = fi0 + 1;
-
-        fi0 *= FAST_DIVIDE_FREQ;
-        fi2 *= FAST_DIVIDE_FREQ;
-        valuesdBI[i] = valuesdBI[fi0] + (valuesdBI[fi2] - valuesdBI[fi0]) * (i - fi0) / (fi2 - fi0);
-        valuesmI[i] = valuesmI[fi0] + (valuesmI[fi2] - valuesmI[fi0]) * (i - fi0) / (fi2 - fi0);
-    }
 }
+
 
 static void Track_DrawCurve(int SelQu, int SelEqu)// SelQu=1, if quartz measurement  SelEqu=1, if equal scales
 {
@@ -896,7 +910,7 @@ static void Track_DrawCurve(int SelQu, int SelEqu)// SelQu=1, if quartz measurem
 
     if (!isMeasured)
         return;
-    Track_DrawGrid(0);
+    Track_DrawGrid(1);
     RXX0 = X0;
 
     //Now draw R graph
@@ -1082,26 +1096,30 @@ uint32_t fxs;
                 MakeFstart();// and span
                 isMeasured = 0;
                 Track_DrawGrid(0);
-                BSP_LCD_SelectLayer((1+activeLayerS21)%2);
+               /* BSP_LCD_SelectLayer((1+activeLayerS21)%2);
                 Track_DrawGrid(0);
-                BSP_LCD_SelectLayer(activeLayerS21);
+                BSP_LCD_SelectLayer(activeLayerS21);*/
                 redrawRequired = 0;
+                firstRun=1;
+                cursorVisibleS21=0;
                 DrawCursorS21();
-                cursorVisibleS21=1;
             }
             touchIndex=255;
         }
 
         if (autofast)                                   //Auto Scan
         {
-            activeLayerS21=(1+activeLayerS21)%2;
+           /* activeLayerS21=(1+activeLayerS21)%2;
             BSP_LCD_SelectLayer(activeLayerS21);
-            //BSP_LCD_SetTransparency(activeLayerS21, 127);
+            BSP_LCD_SetLayerVisible_NoReload(activeLayerS21, 1);//  ?
+            BSP_LCD_SetLayerVisible((1+activeLayerS21)%2, 0);*/
             Scan21Fast();
-            LCD_FillRect(LCD_MakePoint(40, 15), LCD_MakePoint(459 , 225), BackGrColor);
-            Track_DrawCurve(0, 0);
             DrawMeasuredValues();
-            //BSP_LCD_SetTransparency(activeLayerS21, 255);
+            if(cursorVisibleS21==0)
+                DrawCursorS21();
+            cursorVisibleS21=1;
+           /* BSP_LCD_SetLayerVisible_NoReload(activeLayerS21, 1);//  ?
+            BSP_LCD_SetLayerVisible((1+activeLayerS21)%2, 0);*/
             redrawRequired = 0;
         }
         if(redrawRequired)

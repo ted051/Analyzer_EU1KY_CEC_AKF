@@ -102,7 +102,6 @@ void LCD_Init(void)
 
     BSP_LCD_SetTransparency(0, 255);
     BSP_LCD_SetTransparency(1, 255);
-   // LCD_Set_Orientation(CFG_GetParam(CFG_PARAM_ORIENTATION));
 }
 /*
 void LCD_TurnOn(void)
