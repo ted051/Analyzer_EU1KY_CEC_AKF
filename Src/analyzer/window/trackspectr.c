@@ -718,7 +718,7 @@ void TrackTouchExecute(LCDPoint pt){
             autofast = 1;
             //BSP_LCD_SelectLayer(activeLayerS21);
             sprintf(tmpBuff, " AUTO SPEED : [%d] ", autoMeasureSpeed);
-            FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 55, 0, tmpBuff);
+            FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 60, 0, tmpBuff);
             TRACK_DrawFootText();
             //BSP_LCD_SelectLayer((1+activeLayerS21)%2);
             //FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 65, 0, tmpBuff);
@@ -817,9 +817,11 @@ int k, length, pos =WY(yofs), posNew = WY(yofsNew);
 
     if(i==WWIDTH)  firstRun=0;
 
-    if (posNew > Y0+ WHEIGHT) posNew = Y0 + WHEIGHT;
+    if (pos > WHEIGHT+ Y0) pos = WHEIGHT +Y0;
+    else if (pos < Y0) pos = Y0;
 
-    else if (posNew < Y0) return;//posNew = Y0;
+    if (posNew > WHEIGHT+ Y0) posNew = WHEIGHT +Y0;
+    else if (posNew < Y0) posNew = Y0;
 
     if((i%linediv==0)||(i%(linediv*lmod)==1)){// delete the old pixel(s)
         LCD_SetPixel(LCD_MakePoint(i+X0, pos), WGRIDCOLOR);
@@ -874,8 +876,8 @@ float newValue;
             DSP_MeasureTrack(freq1, 1, 1, nScanCount);
             valuesmI[i] = DSP_MeasuredTrackValue();
             newValue = OSL_TXTodB(freq1, valuesmI[i]);
-            yofsNew = WHEIGHT+Y0+ newValue * displayRate;
-            yofs = WHEIGHT+Y0+ valuesdBI[i] * displayRate;
+            yofsNew = WHEIGHT + newValue * displayRate;
+            yofs = WHEIGHT + valuesdBI[i] * displayRate;
             valuesdBI[i]=newValue;
             if((yofs!=yofsNew)||(firstRun==1))
                 SetMeasPointS21(i, yofsNew, yofs);
@@ -884,12 +886,12 @@ float newValue;
             if(k>=1){
                 i0 = k * autoMeasureSpeed;
                 i2 = i0 - autoMeasureSpeed;
-                for (m= i2 ; m < i0; m++){
+                for (m= i2+1 ; m < i0; m++){
                     //Interpolate previous intermediate values linear
                     valuesmI[m] = valuesmI[i2] + (valuesmI[i0] - valuesmI[i2]) * (m-i2) / autoMeasureSpeed;
                     newValue = valuesdBI[i2] + (valuesdBI[i0] - valuesdBI[i2]) * (m-i2) / autoMeasureSpeed;
-                    yofsNew = WHEIGHT+Y0+ newValue * displayRate;
-                    yofs = WHEIGHT+Y0+ valuesdBI[m] * displayRate;
+                    yofsNew = WHEIGHT + newValue * displayRate;
+                    yofs = WHEIGHT + valuesdBI[m] * displayRate;
                     valuesdBI[m]=newValue;
                     if((yofs!=yofsNew)||(firstRun==1))
                         SetMeasPointS21(m, yofsNew, yofs);
@@ -901,6 +903,7 @@ float newValue;
     isMeasured = 1;
 }
 
+int lastoffset;
 
 static void Track_DrawCurve(int SelQu, int SelEqu)// SelQu=1, if quartz measurement  SelEqu=1, if equal scales
 {
@@ -913,14 +916,12 @@ static void Track_DrawCurve(int SelQu, int SelEqu)// SelQu=1, if quartz measurem
     Track_DrawGrid(1);
     RXX0 = X0;
 
-    //Now draw R graph
-    int lastoffset = 0;
 
     //Draw  labels
     int yofs = 0;
     int yofs_sm = 0;
 
-    //Now draw X graph
+    //Now draw graph
     lastoffset = 0;
     for(i = 0; i <= WWIDTH; i++)
     {
