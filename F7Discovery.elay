@@ -448,12 +448,12 @@
 	</File>
 	<File name="Src\analyzer\window\trackspectr.c" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="20846" topLine="709" />
+			<Cursor1 position="9135" topLine="289" />
 		</Cursor>
 	</File>
 	<File name="Src\analyzer\window\weaksignal.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="35006" topLine="910" />
+			<Cursor1 position="35006" topLine="907" />
 		</Cursor>
 	</File>
 	<File name="Src\BSP\Components\Common\lcd.h" open="0" top="0" tabpos="22" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -478,7 +478,7 @@
 	</File>
 	<File name="Src\BSP\Components\wm8994\wm8994.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3880" topLine="81" />
+			<Cursor1 position="4885" topLine="148" />
 		</Cursor>
 	</File>
 	<File name="Src\BSP\STM32746G-Discovery\stm32746g_discovery.c" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">

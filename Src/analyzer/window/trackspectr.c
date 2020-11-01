@@ -326,7 +326,7 @@ static void Track_DrawGrid(int justGraphDraw)  //
 {
     char buf[30];
     int i;
-    int verticalPos = 12;
+    int verticalPos = 13;
     uint32_t fstart;
     uint32_t pos = 130;
 
