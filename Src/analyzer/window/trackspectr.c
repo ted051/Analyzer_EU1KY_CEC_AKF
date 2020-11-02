@@ -89,8 +89,6 @@ static uint32_t cursorPos = WWIDTH / 2;
 
 static uint32_t cursorChangeCount = 0;
 static uint32_t autofast = 0;
-extern uint8_t NotSleepMode;
-
 static void Track_DrawRX();
 static int trackbeep;
 static char tmpBuff[20];
@@ -1132,7 +1130,6 @@ uint32_t fxs;
         LCD_ShowActiveLayerOnly();
     }   //end of for(;;)
     GEN_SetClk2Freq(0);// CLK2 off
-    NotSleepMode = 0;
     //Release Memory
     free(valuesmI);
     free(valuesdBI);

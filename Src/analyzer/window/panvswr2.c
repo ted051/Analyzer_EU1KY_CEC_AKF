@@ -206,7 +206,6 @@ const uint32_t BSVALUES[] = {2,4,10,20,40,100, 150, 200, 250, 300, 400, 500, 100
                              350000, 400000, 450000, 500000, 700000, 1000000\
                             };
 
-extern uint8_t NotSleepMode;
 static char autoMeasureSpeed = 0;
 static uint32_t f1 = 14000000; //Scan range start frequency, in Hz
 static BANDSPAN span = BS400;
@@ -231,7 +230,7 @@ static float complex *SavedValues3;
 static int isStored;
 
 static int isMeasured = 0;
-static uint32_t cursorPos = WWIDTH / 2;
+static uint32_t cursorPos;
 static GRAPHTYPE grType = GRAPH_VSWR;
 static uint32_t isSaved = 0;
 static uint32_t cursorChangeCount = 0;
@@ -1069,22 +1068,7 @@ static void ScanRX(int selector)
     int newDispTag = 0;
     for(i = 0; i <= WWIDTH; i++)
     {
-       /* if(i % 40 == 0)
-        {
-            //FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 450, 0, "TS");
-            //Sleep(50);
-            newDispTag = ! newDispTag;
-            if (newDispTag)
-            {
-                FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 450, 0, "TS");
-            }
-            else
-            {
-                FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 450, 0, "dP");
-            }
-        }*/
 
-        //Sleep(10);
         freq1 = fstart + i * deltaF;
         if (freq1 == 0) //To overcome special case in DSP_Measure, where 0 is valid value
             freq1 = 1;
@@ -2678,7 +2662,7 @@ void Scan(void) // Scan  or  Frequency        Button6
     {
         if (0 == autofast)
         {
-            LCD_ShowActiveLayerOnly();
+            //LCD_ShowActiveLayerOnly();
             FONT_Write(FONT_FRANBIG, LCD_RED, LCD_BLACK, 180, 100, "  Scanning...  ");
             ScanRX(0);
         }
@@ -3009,20 +2993,23 @@ void DrawLoadStoreStatus()
 
 void PANVSWR2_Proc(void)// **************************************************************************+*********
 {
-int Beeper=0, FirstTouch=0;
+int Beeper=0;
 
     activeLayerX=1;
     BSP_LCD_SelectLayer(activeLayerX);
     LCD_ShowActiveLayerOnly();
     cursorVisible=0;// in the beginning not visible
     ClearScreen=1;
-    autofast=0;
+    autofast=0;// no fast mode
     Saving=0;
     redrawRequired=0;
     SetColours();
     loglog=CFG_GetParam(CFG_PARAM_LOGLOG);
     AutoCursor=CFG_GetParam(CFG_PARAM_CURSOR);
     ManualCursor=0;
+    if(CFG_GetParam(CFG_PARAM_PAN_CENTER_F)==1)
+        cursorPos= WWIDTH / 2;
+    else cursorPos=0;
     Switch=0;// menu 1
     isStored=0;
     holdScale=0;
@@ -3104,7 +3091,6 @@ int Beeper=0, FirstTouch=0;
             else if((pt.y<190)&&(pt.x>60)&&(pt.x<400))
             {
                 DiagType();// next diagram type
-                ManualCursor=0;
                 ClearScreen=1;
                 if(BeepOn1==1){
                     UB_TIMER2_Init_FRQ(880);
@@ -3149,8 +3135,6 @@ int Beeper=0, FirstTouch=0;
                     free(SavedValues1);
                     free(SavedValues2);
                     free(SavedValues3);
-
-                    NotSleepMode = 0;
                     return;
                 }
             }
@@ -3189,7 +3173,6 @@ int Beeper=0, FirstTouch=0;
             redrawRequired=0;
         }
         LCD_ShowActiveLayerOnly();
-        NotSleepMode = autofast;
     }
 }
 
