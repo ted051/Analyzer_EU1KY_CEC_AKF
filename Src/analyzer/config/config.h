@@ -184,6 +184,7 @@ typedef enum
     CFG_PARAM_ORIENTATION,
     CFG_PARAM_LOGLOG,
     CFG_PARAM_CURSOR,
+    CFG_PARAM_ATTENUATOR,// DH1AKF 03.11.2020
     //For count of params ---------------------
     CFG_NUM_PARAMS
 } CFG_PARAM_t;

@@ -19,6 +19,7 @@
 #include "num_keypad.h"
 #include "panfreq.h"
 #include "generator.h"
+#include "si5351_hs.h"
 #include "FreqCounter.h"
 
 extern uint32_t BackGrColor;

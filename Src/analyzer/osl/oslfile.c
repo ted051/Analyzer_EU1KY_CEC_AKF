@@ -138,9 +138,9 @@ static int GetIndexForFreq(uint32_t fhz)
     {
         //idx = (int)roundf((float)fhz / OSL_SCAN_STEP) - BAND_FMIN / OSL_SCAN_STEP;
         if(fhz<=OSL_FREQUENCY_BORDER)
-            idx = (int)(fhz / OSL_SMALL_SCAN_STEP) - CFG_GetParam(CFG_PARAM_BAND_FMIN) / OSL_SMALL_SCAN_STEP;
+            idx = (int)(fhz - CFG_GetParam(CFG_PARAM_BAND_FMIN)) / OSL_SMALL_SCAN_STEP;
         else
-            idx = (int)(fhz / OSL_SCAN_STEP) - OSL_FREQUENCY_BORDER / OSL_SCAN_STEP + MID_IDX;
+            idx = (int)(fhz - OSL_FREQUENCY_BORDER )/ OSL_SCAN_STEP + MID_IDX;
     }
     return idx;
 }
@@ -202,7 +202,7 @@ void OSL_ScanErrCorr(void(*progresscb)(uint32_t))
     osl_err_loaded = 1;
 }
 
-//Linear interpolation added by OM0IM
+//Linear interpolation; idea: OM0IM, DH1AKF
 void OSL_CorrectErr(uint32_t fhz, float *magdif, float *phdif)
 {
     if (!osl_err_loaded)
@@ -210,33 +210,34 @@ void OSL_CorrectErr(uint32_t fhz, float *magdif, float *phdif)
     int idx = GetIndexForFreq(fhz);
     if (-1 == idx)
         return;
-    float correct;
+    float correct, v0, diff, factor;
     if (fhz >= CFG_GetParam(CFG_PARAM_BAND_FMAX))
         correct = 0.0f;
     else
     {
-        correct = osl_errCorr[idx + 1].mag0;
-        correct = correct - osl_errCorr[idx].mag0;
+        v0=osl_errCorr[idx].mag0;
+        diff= osl_errCorr[idx + 1].mag0 - v0;
     }
-    if(idx > MID_IDX)
-        correct = osl_errCorr[idx].mag0 + (correct * (((float)fhz / OSL_SCAN_STEP) - (fhz / OSL_SCAN_STEP)));
+    if(idx >= MID_IDX)
+        factor=(float)(fhz-OSL_FREQUENCY_BORDER)/OSL_SCAN_STEP-(idx-MID_IDX);
     else
-        correct = osl_errCorr[idx].mag0 + (correct * (((float)fhz / OSL_SMALL_SCAN_STEP) - (fhz / OSL_SMALL_SCAN_STEP)));
-    *magdif *= correct;
+        factor=(float)(fhz-CFG_GetParam(CFG_PARAM_BAND_FMIN)/OSL_SMALL_SCAN_STEP) -idx;
+    if((0<=factor)&&(factor <=1.)){
 
-    if (fhz == CFG_GetParam(CFG_PARAM_BAND_FMAX))
-        correct = 0.0f;
-    else
-    {
-        correct = osl_errCorr[idx + 1].phase0;
-        correct = correct - osl_errCorr[idx].phase0;
+        *magdif *= (v0 + diff *factor);
+
+        if (fhz == CFG_GetParam(CFG_PARAM_BAND_FMAX))
+            correct = 0.0f;
+        else
+        {
+            v0=osl_errCorr[idx].phase0;
+            diff=osl_errCorr[idx + 1].phase0 -v0;
+        }
+
+        correct = v0+ diff*factor;
+
+        *phdif -= correct;
     }
-    if(idx>MID_IDX)
-        correct = osl_errCorr[idx].phase0 + (correct * (((float)fhz / OSL_SCAN_STEP) - (fhz / OSL_SCAN_STEP)));
-    else
-        correct = osl_errCorr[idx].phase0 + (correct * (((float)fhz / OSL_SMALL_SCAN_STEP) - (fhz / OSL_SMALL_SCAN_STEP)));
-
-    *phdif -= correct;
 }
 
 
@@ -562,6 +563,8 @@ float complex OSL_ZFromG(float complex G, float Rbase)
 //Correct measured G (vs OSL_BASE_R0) using selected OSL calibration file
 static float complex OSL_CorrectG(uint32_t fhz, float complex gMeasured)
 {
+ uint32_t   fr1;
+ float prop;
     if (fhz < BAND_FMIN || fhz > CFG_GetParam(CFG_PARAM_BAND_FMAX)) //We can't do anything with frequencies beyond the range
     {
         return gMeasured;
@@ -577,49 +580,55 @@ static float complex OSL_CorrectG(uint32_t fhz, float complex gMeasured)
 
     int i, k=0;
     S_OSLDATA oslData;
+    COMPLEX gResult;
     //i = (fhz - BAND_FMIN) / OSL_SCAN_STEP; //Nearest lower OSL file record index
     i = GetIndexForFreq(fhz);
-    if ((i<=MID_IDX) && (0 == (fhz % OSL_SMALL_SCAN_STEP))){
-        //We already have exact value for this frequency
+    fr1=OSL_GetCalFreqByIdx(i);
+    if((fr1==fhz)&&(i!=MID_IDX))    {
+        k=1; // No interpolation necessary.
         oslData = osl_data[i];
-        k=1;
     }
-    else if(0 == ((fhz-OSL_FREQUENCY_BORDER) % OSL_SCAN_STEP)){
-        oslData = osl_data[i];
-        k=1;
+    else
+    {
+        if (i==0){// first interval or middle
+                //Corner cases. Linearly interpolate two OSL factors for two nearby records
+                //(there is no third point for this interval)
+            prop = (float)(fhz - fr1) / OSL_SMALL_SCAN_STEP; //proportion
+            k=2;
+        }
+        else if(i==MID_IDX){
+            i++;
+            k=2;
+            prop=  (float)(fhz - fr1) / OSL_SCAN_STEP-1.0f;
+
+        }
+        else if(fr1>CFG_GetParam(CFG_PARAM_BAND_FMAX)-OSL_SCAN_STEP){//Last interval
+            prop=  (float)(fhz - fr1) / OSL_SCAN_STEP;
+            k=2;
+        }
+        if(k==2){
+            oslData.e00 = (osl_data[i+1].e00 - osl_data[i+0].e00) * prop + osl_data[i+0].e00;
+            oslData.e11 = (osl_data[i+1].e11 - osl_data[i+0].e11) * prop + osl_data[i+0].e11;
+            oslData.de = (osl_data[i+1].de - osl_data[i+0].de) * prop + osl_data[i+0].de;
+        }
     }
-    if ((i == 0)&&(k==0))
-    {//Corner case. Linearly interpolate two OSL factors for two nearby records
-     //(there is no third point for this interval)
-        float prop = ((float)(fhz - BAND_FMIN)) / (float)(OSL_SMALL_SCAN_STEP); //proportion
-        oslData.e00 = (osl_data[1].e00 - osl_data[0].e00) * prop + osl_data[0].e00;
-        oslData.e11 = (osl_data[1].e11 - osl_data[0].e11) * prop + osl_data[0].e11;
-        oslData.de = (osl_data[1].de - osl_data[0].de) * prop + osl_data[0].de;
-    }
-    else if (k==0)
+    if (k==0)
     {//We have three OSL points near fhz, thus using parabolic interpolation
         float f1, f2, f3;
-        if(i<= MID_IDX){
-            f1 = (i - 1) * (float)OSL_SMALL_SCAN_STEP + (float)(BAND_FMIN);
-            f2 = i * (float)OSL_SMALL_SCAN_STEP + (float)(BAND_FMIN);
-            f3 = (i + 1) * (float)OSL_SMALL_SCAN_STEP + (float)(BAND_FMIN);
-        }
-        else{
-            f1 = (i - MID_IDX-1) * (float)OSL_SCAN_STEP + (float)(OSL_FREQUENCY_BORDER);
-            f2 = (i - MID_IDX) * (float)OSL_SCAN_STEP + (float)(OSL_FREQUENCY_BORDER);
-            f3 = (i - MID_IDX+1) * (float)OSL_SCAN_STEP + (float)(OSL_FREQUENCY_BORDER);
-        }
+        f1=(float) OSL_GetCalFreqByIdx(i-1);
+        f2=(float)fr1;
+        f3=(float) OSL_GetCalFreqByIdx(i+1);
+
         oslData.e00 = OSL_ParabolicInterpolation(osl_data[i-1].e00, osl_data[i].e00, osl_data[i+1].e00,
                                              f1, f2, f3, (float)(fhz));
         oslData.e11 = OSL_ParabolicInterpolation(osl_data[i-1].e11, osl_data[i].e11, osl_data[i+1].e11,
                                              f1, f2, f3, (float)(fhz));
         oslData.de = OSL_ParabolicInterpolation(osl_data[i-1].de, osl_data[i].de, osl_data[i+1].de,
                                              f1, f2, f3, (float)(fhz));
-
     }
     //At this point oslData contains correction structure for given frequency fhz
 
-    COMPLEX gResult = gMeasured * oslData.e11 - oslData.de; //Denominator
+    gResult = gMeasured * oslData.e11 - oslData.de; //Denominator
     gResult = (gMeasured - oslData.e00) / _cnonz(gResult);
     return gResult;
 }

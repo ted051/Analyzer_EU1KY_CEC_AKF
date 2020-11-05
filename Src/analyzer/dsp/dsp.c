@@ -73,6 +73,52 @@ static float _nonz(float f)
     return f;
 }
 
+
+//Goertzel_2
+
+float sine, cosine, selstartGoertzel=0;
+
+void startGoertzel(void){
+    int m=107;//10031*(NSAMPLES)/48000+.5;
+    sine = sin((2.0 * M_PI * (float) m) / (float) (NSAMPLES));
+    cosine = cos((2.0 * M_PI * (float) m) / (float) (NSAMPLES));
+}
+
+float goertzel(int NumSamples, float* data) //, float* realresult, float* imagresult)
+{
+    int     k,i;
+    float   q0,q1,q2,magnitude,real,imag;
+
+    float   scalingFactor = NumSamples / 2.0;
+    if(selstartGoertzel==0){
+        startGoertzel();
+    }
+
+    q0=0;
+    q1=0;
+    q2=0;
+
+    for(i=0; i<NumSamples; i++)
+    {
+        q0 = 2.0 * cosine * q1 - q2 + data[i];
+        q2 = q1;
+        q1 = q0;
+    }
+
+    // calculate the real and imaginary results
+    // scaling appropriately
+    real = (q1 * cosine - q2) / scalingFactor;
+    imag = (q1 * sine) / scalingFactor;
+
+    magnitude = sqrtf(real*real + imag*imag);
+    //realresult=real;
+    //*imagresult=imag;
+    //phase = atan(imag/real)
+    return magnitude;
+}
+
+
+
 static float complex DSP_FFT(int channel)
 {
     float magnitude, phase;
@@ -217,7 +263,7 @@ void DSP_Sample(void)
     }
 }
 
-void DSP_Sample16(void)
+void DSP_Sample64(void)
 {
     extern SAI_HandleTypeDef haudio_in_sai;
     HAL_StatusTypeDef res = HAL_SAI_Receive(&haudio_in_sai, (uint8_t*)audioBuf, (2 + 62) * 2, HAL_MAX_DELAY);

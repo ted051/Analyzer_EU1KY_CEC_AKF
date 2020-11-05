@@ -419,11 +419,20 @@ static const CFG_CHANGEABLE_PARAM_DESCR_t cfg_ch_descr_table[] =
     {
         .id = CFG_PARAM_CURSOR,                // added by DH1AKF
         .idstring = "Cursor",    // 05.10.2020
-        .type = CFG_PARAM_T_U32,
-        .nvalues = 2,
-        .values = CFG_IARR(0,1),
-        .strvalues = CFG_SARR("No Auto Cursor", "Auto Cursor"),
+        .type = CFG_PARAM_T_U32, // extended 03.11.2020 (Strict Auto Cursor)
+        .nvalues = 3,
+        .values = CFG_IARR(0,1,2),
+        .strvalues = CFG_SARR("No Auto Cursor", "Auto Cursor", "Strict Auto Cursor"),
         .dstring = "AutoCursor/ No Auto Cursor",
+    },
+    {
+        .id = CFG_PARAM_ATTENUATOR,           // added by DH1AKF
+        .idstring = "Attenuator for S21",     // 03.11.2020
+        .type = CFG_PARAM_T_U32,
+        .nvalues = 7,
+        .values = CFG_IARR(6,10,20,30,40,50,60),
+        .strvalues = CFG_SARR("6dB", "10 dB", "20 dB", "30 dB", "40 dB", "50 dB", "60 dB"),
+        .dstring = "Calibrate with additional Attenuator",
     },
 };
 

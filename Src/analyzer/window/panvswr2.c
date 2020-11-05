@@ -516,7 +516,7 @@ static float S11Calc(float swr)
     return offs;
 }
 
-static int IsFinHamBands(uint32_t f_kHz)
+int IsFinHamBands(uint32_t f_kHz)
 {
     uint32_t i;
     switch(CFG_GetParam(CFG_PARAM_REGION))
