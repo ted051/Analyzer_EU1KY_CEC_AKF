@@ -29,8 +29,7 @@ extern uint16_t TimeFlag;
 static uint32_t fChanged = 0;
 static uint32_t rqExit = 0;
 static uint32_t f_maxstep = 500000;
-static uint32_t redrawWindow = 0;
-static uint32_t redrawWindowCompl;
+static uint32_t redrawWindow;
 static uint32_t fx = 14000000ul; //start frequency, in Hz
 static uint32_t fxkHz;//frequency, in kHz
 static BANDSPAN *pBs1;
@@ -162,7 +161,7 @@ static void GENERATOR_SetFreq(void)
 
 
 void GENERATOR_AM(void){
-int k;
+int k=0;
     while(TOUCH_IsPressed());
     Sleep(100);
     fx=CFG_GetParam(CFG_PARAM_GEN_F);
@@ -171,35 +170,41 @@ int k;
         LCD_Rectangle((LCDPoint){320,234},(LCDPoint){379,271}, 0xffff0000);//red
         LCD_Rectangle((LCDPoint){319,233},(LCDPoint){378,270}, 0xffff0000);//red
        for(;;){
-            Sleep(1);
-            GEN_SetMeasurementFreq(0);
             k++;
-            if(k>=100){
-                k=0;
+            Sleep(2);
+            if(k%2==1){
+                GEN_SetMeasurementFreq(0);
+                GEN_SetClk2Freq(0);
+            }
+            else{
+                GEN_SetMeasurementFreq(fx);
+                GEN_SetClk2Freq(fx);
+            }
+            if(k==1000)  k=0;
+
+            if(k%20==1){
                 if (TOUCH_Poll(&pt))  {
                     mod_AM=false;
-                    redrawWindowCompl=1;
+                    redrawWindow=1;
                     GEN_SetMeasurementFreq(fx);
+                    GEN_SetClk2Freq(fx);
+                    Sleep(300);
                     return;
                 }
             }
-            Sleep(1);
-            GEN_SetMeasurementFreq(fx);
-            k++;
-            if(k==1) TOUCH_Poll(&pt);
-
-        }
-        return;
+       }
     }
     else {
         mod_AM=false;
         GEN_SetMeasurementFreq(fx);
+        GEN_SetClk2Freq(fx);
+        redrawWindow=1;
     }
 
 }
 
 void GENERATOR_FM(void){
-int k;
+int k=0;
     while(TOUCH_IsPressed());
     Sleep(100);
     fx=CFG_GetParam(CFG_PARAM_GEN_F);
@@ -209,28 +214,34 @@ int k;
         LCD_Rectangle((LCDPoint){379,233},(LCDPoint){439,270}, 0xffff0000);//red
 
         for(;;){
-            Sleep(1);
-            GEN_SetMeasurementFreq(fx+150);
+            Sleep(2);
             k++;
-            if(k>=100){
-                k=0;
+            if(k%2==1){
+                GEN_SetMeasurementFreq(fx-150);
+                GEN_SetClk2Freq(fx-150);
+            }
+            else{
+                GEN_SetMeasurementFreq(fx+150);
+                GEN_SetClk2Freq(fx+150);
+            }
+            if(k==1000) k=0;
+            if(k%20==1){
                 if (TOUCH_Poll(&pt))  {
                     mod_FM=false;
-                    redrawWindowCompl=1;
+                    redrawWindow=1;
                     GEN_SetMeasurementFreq(fx);
+                    GEN_SetClk2Freq(fx);
+                    Sleep(300);
                     return;
                 }
             }
-            Sleep(1);
-            GEN_SetMeasurementFreq(fx-150);
-            k++;
-            if(k==1) TOUCH_Poll(&pt);
-
         }
     }
     else {
         mod_FM=false;
         GEN_SetMeasurementFreq(fx);
+        GEN_SetClk2Freq(fx);
+        redrawWindow=1;
     }
 
 }
@@ -302,23 +313,21 @@ uint32_t speedcnt = 0;
             CFG_Flush();
         }
     }
-    redrawWindowCompl = 1;
+    redrawWindow = 0;
 GENERATOR_REDRAW:
     k=99;
     SignalGood=0;
     GEN_SetMeasurementFreq(CFG_GetParam(CFG_PARAM_GEN_F));
-    if(redrawWindowCompl == 1){
-        redrawWindowCompl = 0;
-        LCD_FillAll(BackGrColor);
-        ShowHitRect(GENERATOR_hitArr);
-        ShowIncDec1();
-        FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 0, 36, "Generator mode");// WK
-        FONT_Write(FONT_FRANBIG, CurvColor, BackGrColor, 2, 235, " Exit ");
-        FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 85, 235, "Frequency");
-        //FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 220, 235, "Colour");
-        FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 332, 235, "AM");
-        FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 392, 235, "FM");
-    }
+    GEN_SetClk2Freq(CFG_GetParam(CFG_PARAM_GEN_F));// ***********
+
+    LCD_FillAll(BackGrColor);
+    ShowHitRect(GENERATOR_hitArr);
+    ShowIncDec1();
+    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 0, 36, "Generator mode");// WK
+    FONT_Write(FONT_FRANBIG, CurvColor, BackGrColor, 2, 235, " Exit ");
+    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 85, 235, "Frequency");
+    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 332, 235, "AM");
+    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 392, 235, "FM");
     ShowF();
     if(mod_AM==false){
         LCD_Rectangle((LCDPoint){320,234},(LCDPoint){379,271}, 0xffffffff);//white  AM
@@ -336,17 +345,17 @@ GENERATOR_REDRAW:
     HS_SetPower(2, 3, 1);// CLK2 8mA
     while(1)
     {
-        if(redrawWindowCompl == 1)   goto GENERATOR_REDRAW;
-        while (TOUCH_Poll(&pt)){
+        if(TOUCH_Poll(&pt)){
             if(HitTest(GENERATOR_hitArr, pt.x, pt.y)==1){
                 if (rqExit)
                 {
                     GEN_SetMeasurementFreq(0);
+                    GEN_SetClk2Freq(0);
                     return; //Change window
                 }
                 if (redrawWindow)
                 {
-                    redrawWindowCompl = 0;
+                    redrawWindow = 0;
                     goto GENERATOR_REDRAW;
                 }
                 if (fChanged)
@@ -368,19 +377,7 @@ GENERATOR_REDRAW:
                 }
             }
         }
-        /*Sleep(50);
-        speedcnt = 0;
-        f_maxstep = 500000;
-        if (fChanged)
-        {
-            CFG_Flush();// save all settings
-            GEN_SetMeasurementFreq(CFG_GetParam(CFG_PARAM_GEN_F));
-            fChanged = 0;
-            ShowF();
-        }
-        if(TOUCH_Poll(&pt)!=0) {
-                continue;
-        }*/
+
         Sleep(50);
         k++;
         if(k>=100){

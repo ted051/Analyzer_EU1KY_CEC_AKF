@@ -448,10 +448,11 @@ int i, regnu, found=0;
     return -1;// not in a Ham band
 }
 
-static void WK_InvertPixel(LCDPoint p)
+void WK_InvertPixel(uint16_t x, uint16_t y)
 {
     LCDColor    c;
-    c=LCD_ReadPixel(p);
+    LCDPoint p= LCD_MakePoint(x,y);
+        c=LCD_ReadPixel(p);
     switch (c)
     {
     case LCD_COLOR_YELLOW:
@@ -598,7 +599,7 @@ static void DrawCursor1()
             while (p.y < Y0 + WHEIGHT)
             {
                 if((p.y % 20)<10)
-                    WK_InvertPixel(p);
+                    WK_InvertPixel(p.x,p.y);
                 else LCD_InvertPixel(p);
                 p.y++;
 
@@ -747,7 +748,7 @@ static void DecrCursor()
     if (cursorPos == 0)
         return;
     ManualCursor=1;
-    AutoCursor=0;
+    //AutoCursor=0;
     if (cursorVisible==1)
         DrawCursor();// delete the old cursor
     cursorPos--;
@@ -775,7 +776,7 @@ static void IncrCursor()
     if (cursorPos >= WWIDTH)
         return;
     ManualCursor=1;
-    AutoCursor=0;
+    //AutoCursor=0;
     if (cursorVisible==1)
         DrawCursor();// delete the old cursor
     cursorPos++;
@@ -1241,7 +1242,7 @@ static void DrawVSWR(void)
         lastoffset_sm = offset_sm;
     }
 
-   if((AutoCursor==1) && (ManualCursor==0)){
+   if((AutoCursor==2)||((AutoCursor==1) && (ManualCursor==0))){
 
         cursorPos=MinIndex;
     }
@@ -1471,7 +1472,7 @@ static void DrawS11()
         }
         lasty = y;
     }
-    if((AutoCursor==1) && (ManualCursor==0)){
+    if((AutoCursor==2)||((AutoCursor==1) && (ManualCursor==0))){
         cursorPos=MaxJ;
     }
     FONT_Write(FONT_FRAN, LCD_BLACK, LCD_COLOR_LIGHTGREEN, X0+1, 0, modstr);
@@ -3112,12 +3113,14 @@ int Beeper=0;
             {
                 Beeper=1;
                 if((pt.y>=93)&&(pt.y<=128)){//       "<"
+                    redrawRequired=0;
                     DecrCursor();
                     if(cursorChangeCount>=5)
                         Beeper=0;
                     autofast=0;
                 }
                 else if((pt.y>=132)&&(pt.y<=167)){// ">"
+                    redrawRequired=0;
                     IncrCursor();
                     if(cursorChangeCount>=5)
                         Beeper=0;
@@ -3144,7 +3147,7 @@ int Beeper=0;
                 Sleep(100);
                 UB_TIMER2_Stop();
                 Beeper=0;
-                redrawRequired=1;//in case of "Save Snapshot"
+               // redrawRequired=1;//in case of "Save Snapshot"
             }
         }
         else
@@ -3156,7 +3159,7 @@ int Beeper=0;
         if(autofast==0){
             holdScale=0;
         }
-        else{
+        else {
     // in fast mode alternate the active layer
             activeLayerX=!BSP_LCD_GetActiveLayer();
             BSP_LCD_SelectLayer(activeLayerX);

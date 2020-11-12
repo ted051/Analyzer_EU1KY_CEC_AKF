@@ -25,11 +25,15 @@ static char progresstxt[16];
 static int progressval;
 static TEXTBOX_t hbEx;
 static TEXTBOX_t hbScanShort;
+static TEXTBOX_t tb_S21_CALIBRATION[];
 static uint32_t hbScanShortIdx;
+static uint32_t hbScanAttenuatorIdx;
 static TEXTBOX_t hbScanOpen;
 static TEXTBOX_t hbScanLoad;
 static TEXTBOX_t hbScanProgress;
+
 static uint32_t hbScanProgressId;
+static TEXTBOX_t tbScanProgress;
 static TEXTBOX_t hbSave;
 static TEXTBOX_CTX_t osl_ctx = {0};
 static int percents = 0;
@@ -42,13 +46,26 @@ static void _hit_ex(void)
     rqExit = 1;
 }
 
-static void progress_cb(uint32_t new_percent)
+void progress_cb(uint32_t new_percent)
 {
     if (new_percent == progressval || new_percent > 100)
         return;
     progressval = new_percent;
     sprintf(progresstxt, "%u%%", (unsigned int)progressval);
     TEXTBOX_SetText(&osl_ctx, hbScanProgressId, progresstxt);
+    autosleep_timer = 30000; //CFG_GetParam(CFG_PARAM_LOWPWR_TIME);
+}
+
+int progval, indextb;
+static char progTxt[20];
+
+void S21progress_cb(uint32_t new_percent)
+{
+    if (new_percent == progval || new_percent > 100)
+        return;
+    progval = new_percent;
+    sprintf(progTxt, "%u%%", (unsigned int)progval);
+    TEXTBOX_SetText(&osl_ctx, indextb, progTxt);
     autosleep_timer = 30000; //CFG_GetParam(CFG_PARAM_LOWPWR_TIME);
 }
 
@@ -243,55 +260,90 @@ void OSL_CalErrCorr(void)
 }
 
 //=====================================================================
-//TX Calibration for Network Analyzer
+//TX Calibration for |S21| window
 //KD8CEC
 //---------------------------------------------------------------------
+static void _hit_att_scan(void);
+static TEXTBOX_t *hbscan;
+static int progress;
+
 static void _hit_tx_scan(void) // ************************************************************************
 {
-    progressval = 100;
-    progress_cb(0);
-
-    hbScanShort.bgcolor = LCD_RGB(128, 128, 0);
+    indextb=3;// index of textbox
+    progval = 100;
+    S21progress_cb(0);
+    hbscan=(TEXTBOX_t *)&tb_S21_CALIBRATION[1];
+    hbscan->bgcolor = LCD_RGB(128, 128, 0);
     TEXTBOX_DrawContext(&osl_ctx);
 
-    OSL_ScanTXCorr(progress_cb);
+    OSL_ScanTXCorr(S21progress_cb);
 
-    hbScanShort.bgcolor = LCD_RGB(0, 128, 0);
-    TEXTBOX_SetText(&osl_ctx, hbScanShortIdx, "  Success  ");
-
+    hbscan->bgcolor = LCD_RGB(0, 128, 0);
+    strcpy(progresstxt, "Success (1)");
+    TEXTBOX_SetText(&osl_ctx, 3, progresstxt);
+    FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 0, 50, "Now insert attenuator and hit button (2)               ");// 55 signs
+    Sleep(3000);
+    progress=1;
     progresstxt[0] = '\0';
-    TEXTBOX_SetText(&osl_ctx, hbScanProgressId, progresstxt);
+    TEXTBOX_SetText(&osl_ctx, 3, progresstxt);
     TEXTBOX_DrawContext(&osl_ctx);
 }
 
+static void _hit_att_scan(void) // ************************************************************************
+{
+    progval = 100;
+    S21progress_cb(0);
+    hbscan=(TEXTBOX_t *)&tb_S21_CALIBRATION[2];
+    hbScanShort.bgcolor = LCD_RGB(128, 128, 0);
+    TEXTBOX_DrawContext(&osl_ctx);
+
+    OSL_ScanTXAttenuator(S21progress_cb);
+    progress=2;
+    hbscan->bgcolor = LCD_RGB(0, 128, 0);
+    strcpy(progresstxt, "Success (2)");
+    FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 0, 50, "Calibration successful, data saved to file. Ready      ");
+    TEXTBOX_SetText(&osl_ctx, 3, progresstxt);
+    TEXTBOX_DrawContext(&osl_ctx);
+}
+
+int rq21Exit;
+
+void hit_exS21(void){
+    if(progress=1) SaveS21CorrToFile();// save without attenuator values
+    rq21Exit = 1;
+}
+
+static TEXTBOX_t tb_S21_CALIBRATION[] =
+{
+    (TEXTBOX_t)
+    {.x0 = 10, .y0 = 220, .text = " Exit ", .font = FONT_FRANBIG, .nowait = 1,\
+            .fgcolor = LCD_BLUE, .bgcolor = LCD_YELLOW, .cb = hit_exS21,.cbparam = 1,.next = (void*)&tb_S21_CALIBRATION[1] },
+    (TEXTBOX_t)
+    {.x0 = 0, .y0 = 110, .text = "(1): S21 calibration without attenuator", .font = FONT_FRANBIG, .nowait = 1,\
+            .fgcolor = LCD_RED, .bgcolor = LCD_RGB(64, 64, 64), .cb = _hit_tx_scan ,.cbparam = 1,.next = (void*)&tb_S21_CALIBRATION[2] },
+    (TEXTBOX_t)
+    {.x0 = 0, .y0 = 160, .text = "(2): S21 calibration with Attenuator", .font = FONT_FRANBIG, .nowait = 1,\
+            .fgcolor = LCD_RED, .bgcolor = LCD_RGB(64, 64, 64), .cb = _hit_att_scan ,.cbparam = 1,.next = (void*)&tb_S21_CALIBRATION[3] },
+    (TEXTBOX_t)
+    {.x0 = 320, .y0 = 50, .text = progresstxt, .font = FONT_FRANBIG,.width = 140, .nowait = 1,
+            .fgcolor = LCD_WHITE, .bgcolor = LCD_BLACK }
+};
+
 void OSL_CalTXCorr(void)
 {
-    rqExit = 0;
-    shortScanned = 0; //To prevent OSL file reloading at exit
-    openScanned = 0;  //To prevent OSL file reloading at exit
-    loadScanned = 0;  //To prevent OSL file reloading at exit
+    rq21Exit = 0;
+    progress=0;
     progresstxt[0] = '\0';
 
     LCD_FillAll(LCD_BLACK);
     while (TOUCH_IsPressed());
 
     FONT_Write(FONT_FRANBIG, LCD_WHITE, LCD_BLACK, 80, 0, "TX (S2) Strength Calibration");
-    FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 0, 50, "Connect S1 and S2 with coaxial cable and hit Start button");
+    FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 0, 50, "Connect S1 and S2 with coaxial cable and hit button (1)");
 
     TEXTBOX_InitContext(&osl_ctx);
 
-    TEXTBOX_t hbEx = {.x0 = 10, .y0 = 220, .text = " Exit ", .font = FONT_FRANBIG,
-                            .fgcolor = LCD_BLUE, .bgcolor = LCD_YELLOW, .cb = _hit_ex };
-    TEXTBOX_Append(&osl_ctx, &hbEx);
-
-    //Reusing hbScanShort
-    hbScanShort = (TEXTBOX_t){.x0 = 100, .y0 = 120, .text = " Start TX calibration ", .font = FONT_FRANBIG,
-                            .fgcolor = LCD_RED, .bgcolor = LCD_RGB(64, 64, 64), .cb = _hit_tx_scan };
-    hbScanShortIdx = TEXTBOX_Append(&osl_ctx, &hbScanShort);
-
-    hbScanProgress = (TEXTBOX_t){.x0 = 350, .y0 = 50, .text = progresstxt, .font = FONT_FRANBIG, .nowait = 1,
-                                 .fgcolor = LCD_WHITE, .bgcolor = LCD_BLACK };
-    hbScanProgressId = TEXTBOX_Append(&osl_ctx, &hbScanProgress);
+    TEXTBOX_Append(&osl_ctx, (TEXTBOX_t *)tb_S21_CALIBRATION);
 
     TEXTBOX_DrawContext(&osl_ctx);
 
@@ -299,8 +351,8 @@ void OSL_CalTXCorr(void)
     {
         if (TEXTBOX_HitTest(&osl_ctx))
         {
-            if (rqExit)
-                return;
+            if (rq21Exit)
+                break;
             Sleep(50);
         }
         Sleep(0);

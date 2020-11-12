@@ -167,9 +167,19 @@ static bool IsValidRange(void)
     else
     {
         fstart = _f1;
-        fend = _f1 + 500*BSVALUES[_bs];
+        fend = _f1 + 1000*BSVALUES[_bs];
     }
     return ((fstart < fend) && (fstart >= BAND_FMIN) && (fend <= CFG_GetParam(CFG_PARAM_BAND_FMAX)));
+}
+
+static bool MakeValidRange(void)
+{
+    if(IsValidRange()) return true;
+    while(!IsValidRange()){
+        if(_bs==BS2) return false;
+        _bs--;
+    }
+    return true;
 }
 
 static void Show_F(void)
@@ -213,6 +223,10 @@ static void BSNextHitCb(void)
     _bs ++;
     if(_bs>BS1000M) _bs=BS1000M;
     BW=BSVALUES[_bs];
+    if (!IsValidRange()){
+        _bs--;
+        BW=BSVALUES[_bs];
+    }
     Show_F();
 }
 
@@ -293,19 +307,16 @@ static void P001HitCb(void)// WK
 {
     F0_Incr(10);
 }
-uint8_t isOKPress = 0;
 static void OKHitCb(void)
 {
-    isOKPress = 1;
     PanrqExit = 1;
-    if (IsValidRange())
+    if (MakeValidRange())
         update_allowed = true;
 }
 
 static void CancelHitCb(void)
 {
     rqDel = 1;// WK
-    isOKPress = 0;
     PanrqExit = 1;
 }
 
@@ -331,23 +342,17 @@ uint32_t k;
 uint8_t i;
 int fkhz=_f1/1000;
 uint32_t Save_f1=_f1;
-    if (_f1 <= CFG_GetParam(CFG_PARAM_BAND_FMAX) )
-    {
-        digit = tb->text[0] - '0';
-        k=1;
-        for(i=0; i<CurPos; i++){
-            k=10*k;
-        }
-        rest = fkhz%(k);
-        fkhz = ((fkhz/(10*k))*10 +digit)*k+rest;
-        _f1=fkhz*1000;
-        if (IsValidRange()){
-            if(CurPos>0) CurPos--;
-        }
-        else{
-            _f1=Save_f1;// no reaction, if out of range
-        }
+    //if (_f1 <= CFG_GetParam(CFG_PARAM_BAND_FMAX) )
+    //{
+    digit = tb->text[0] - '0';
+    k=1;
+    for(i=0; i<CurPos; i++){
+        k=10*k;
     }
+    rest = fkhz%(k);
+    fkhz = ((fkhz/(10*k))*10 +digit)*k+rest;
+    _f1=fkhz*1000;
+    if(CurPos>0) CurPos--;
     Show_F();
 }
 const int StartFreq0[]=
@@ -514,7 +519,6 @@ bool PanFreqWindow(uint32_t *pFkhz, BANDSPAN *pBs)
     LCD_Push(); //Store current LCD bitmap
     LCD_FillAll(LCD_BLACK);
     PanrqExit = 0;
-    isOKPress = 0;
     rqDel = 0;// WK
     CurPos=3;
     _f1 = (*pFkhz)*1000;
@@ -526,7 +530,7 @@ bool PanFreqWindow(uint32_t *pFkhz, BANDSPAN *pBs)
     TEXTBOX_InitContext(&fctx);
 
     TEXTBOX_Append(&fctx, (TEXTBOX_t*)tb_pan); //Append the very first element of the list in the flash.
-                                                      //It is enough since all the .next fields are filled at compile time.
+                                               //It is enough since all the .next fields are filled at compile time.
     TEXTBOX_DrawContext(&fctx);
 
     Show_F();

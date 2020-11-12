@@ -79,9 +79,7 @@ static LCDPoint pt0;
 float *valuesmI;
 float *valuesdBI;
 
-//static float displayRate = 2.9;   //Display Zoom
-//static float displayOffset = 190; //Display Top Offset
-#define displayRate (float)2.9         //Display Zoom
+#define displayRate 2.9f         //Display Zoom
 #define displayOffset 190
 //static char DisplayType = 0;      //values or valuesmI
 static int isMeasured = 0;
@@ -159,65 +157,41 @@ static void TRACK_DrawFootText(void){
 }
 
 static void DrawMeasuredValues(void){
- float rx = valuesmI[cursorPos];
-    float dispDB = valuesdBI[cursorPos];
 
-    uint32_t fstart;
+
+float voltage1 = powf(10.f, -valuesmI[cursorPos]);
+    if(voltage1>20.0f) voltage1 = 20.0f;
+int dispPix = valuesdBI[cursorPos]; // display value (y offset)
+float DispdB= (float)dispPix * 0.3421f  ;//  0.3421 = 65/190
+int dB = CFG_GetParam(CFG_PARAM_ATTENUATOR);
+uint32_t fstart;// in Hz
+uint32_t fCursor;// in Hz
+
     if (CFG_GetParam(CFG_PARAM_PAN_CENTER_F) == 0)
         fstart = f1;
     else
         fstart = f1 - 500*BSVALUES_TRACK[span21];
 
-    fcur = ((float)(fstart/1000. + (float)cursorPos * BSVALUES_TRACK[span21] / WWIDTH));///1000.;
-    if (fcur * 1000.f > (float)(CFG_GetParam(CFG_PARAM_BAND_FMAX) + 1))
-        fcur = 0.f;
+    fCursor =  fstart + (uint32_t)((cursorPos * BSVALUES_TRACK[span21]*1000.f )/ WWIDTH);
 
-    LCD_FillRect(LCD_MakePoint(40, 228),LCD_MakePoint(479 , 240),BackGrColor);
-    FONT_Print(FONT_FRAN, TextColor, BackGrColor, 60, Y0 + WHEIGHT + 17, "F:%10.5fMhz    dB:%8.3f    Measured: %5.3fmV",
-               fcur / 1000,
-               dispDB,
-               rx);
+    if (fCursor  > CFG_GetParam(CFG_PARAM_BAND_FMAX))
+        fCursor = CFG_GetParam(CFG_PARAM_BAND_FMAX);
+    LCD_FillRect(LCD_MakePoint(0, 228),LCD_MakePoint(479 , 240),BackGrColor);
+
+    FONT_Print(FONT_FRAN, TextColor, BackGrColor, 0, 225, "F: %8.2f MHz dB: %4.1f V: %5.3f mV ",
+               (float)(fCursor/ 1000000.f), DispdB, voltage1);
+
+
+//int idx = GetIndexForFreq(fCursor);// ============== TEST to show Corr values ====================
+//float Corr0dB=-osl_txCorr[idx].mag0;     // Corr value 0 dB
+//float CorrAtt=-osl_txCorr[idx].phase0;   //Corr value xx dB
+
+
+ //   FONT_Print(FONT_FRAN, TextColor, BackGrColor, 250, 225, "A0: %.3e A30: %.3e",
+ //               Corr0dB, CorrAtt);
 }
 
-
-static void WK_InvertPixel(LCDPoint p){
-LCDColor    c;
-    c=LCD_ReadPixel(p);
-    switch (c){
-    case LCD_COLOR_YELLOW:
-        {
-            LCD_SetPixel(p,LCD_COLOR_RED);
-            return;
-        }
-    case LCD_COLOR_WHITE:
-        {
-            LCD_SetPixel(p,RED1);
-            return;
-        }
-    case LCD_COLOR_DARKGRAY:
-        {
-            LCD_SetPixel(p,RED2);
-            return;
-        }
-    case LCD_COLOR_RED:
-        {
-            LCD_SetPixel(p,LCD_COLOR_YELLOW);
-            return;
-        }
-    case RED1:
-        {
-            LCD_SetPixel(p,LCD_COLOR_WHITE);
-            return;
-        }
-    case RED2:
-        {
-            LCD_SetPixel(p,LCD_COLOR_DARKGRAY);
-            return;
-        }
-    default:LCD_InvertPixel(p);
-    }
-}
-
+//extern void WK_InvertPixel(uint16_t x, uint16_t y);
 static void DrawCursorS()
 {
     int8_t i;
@@ -233,7 +207,7 @@ static void DrawCursorS()
     if(ColourSelection==1){// Daylightcolours
         while (p.y < Y0 + WHEIGHT){
            if((p.y % 20)<10)
-                WK_InvertPixel(p);
+                WK_InvertPixel(p.x,p.y);
            else LCD_InvertPixel(p);
            p.y++;
 
@@ -328,7 +302,7 @@ static void Track_DrawGrid(int justGraphDraw)  //
     uint32_t fstart;
     uint32_t pos = 130;
 
-    #define VerticalStep 29.3
+    #define VerticalStep 29.23
     #define VerticalX 10
 
     if (0 == CFG_GetParam(CFG_PARAM_PAN_CENTER_F))
@@ -343,31 +317,22 @@ static void Track_DrawGrid(int justGraphDraw)  //
     }
     LCD_FillRect(LCD_MakePoint(40, 15), LCD_MakePoint(459 , 225), BackGrColor);
     cursorVisibleS21=0;
-    if (justGraphDraw==0)
+    if (justGraphDraw%1==0)
     {
-       // LCD_FillAll(BackGrColor);
         //Vertical Numbers
         FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, " 0dB");
-        verticalPos += VerticalStep;
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, "-10");
-        verticalPos += VerticalStep;
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, "-20");
-        verticalPos += VerticalStep;
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, "-30");
-        verticalPos += VerticalStep;
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, "-40");
-        verticalPos += VerticalStep;
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, "-50");
-        verticalPos += VerticalStep;
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, "-60");
-        //verticalPos += VerticalStep;
-        //FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, "-70");
+
+        for(i=-10;i>=-60;i=i-10){
+            verticalPos += VerticalStep;
+            LCD_HLine(LCD_MakePoint(X0 -5 , verticalPos+6), 5, WGRIDCOLOR);
+            FONT_Print(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, "%d", i); // - xx
+        }
 
         //FONT_Write(FONT_FRAN, LCD_BLACK, LCD_PURPLE, 50, 0, modstr);
         FONT_Write(FONT_FRANBIG, TextColor, 0, 2, 107, "<");
         FONT_Write(FONT_FRANBIG, TextColor, 0, 460, 107, ">");
 
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, 200, 0, "VNA |S21|Gain");
+        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, 200, 0, "SNA |S21|Gain");
         FONT_Write(FONT_FRAN, TextColor, BackGrColor, 320, 0, buf);//LCD_BLUE
 
     }
@@ -412,15 +377,15 @@ static void Track_DrawGrid(int justGraphDraw)  //
             LCD_VLine(LCD_MakePoint(x, Y0), WHEIGHT+1, WGRIDCOLOR);
         }
     }
-
+    if(justGraphDraw==2){
+        TRACK_DrawFootText();
+    }
     //LCD_FillRect((LCDPoint){X0 ,Y0+WHEIGHT+1},(LCDPoint){X0 + WWIDTH+2,Y0+WHEIGHT+3},BackGrColor);
 }
 
 static uint32_t Fs, Fp;// in Hz
 static float Cp, Rs;
 
-//extern void DSP_MeasureTrack(uint32_t freqHz, int applyErrCorr, int applyOSL, int nMeasurements);
-//extern float DSP_MeasuredTrackValue();
 
 static void Scan21(int selector)
 {
@@ -439,7 +404,7 @@ static void Scan21(int selector)
         freq1 = 100000;
 
     DSP_MeasureTrack(freq1, 1, 1, 1); //Fake initial run to let the circuit stabilize
-    inputMI = DSP_MeasuredTrackValue();
+   // inputMI = DSP_MeasuredTrackValue();
     Sleep(20);
 
     DSP_MeasureTrack(freq1, 1, 1, 1);
@@ -460,18 +425,13 @@ static void Scan21(int selector)
         if (freq1 == 0) //To overcome special case in DSP_Measure, where 0 is valid value
             freq1 = 1;
         DSP_MeasureTrack(freq1, 1, 1, nScanCount);
-        inputMI = DSP_MeasuredTrackValue();
+        inputMI = -log10(DSP_MeasuredTrackValue());
 
         valuesmI[i] = inputMI;
-        valuesdBI[i] = freq1;   //OSL_TXTodB(freq1, inputMI);   //
+        valuesdBI[i] = OSL_Calc_dBPix(freq1, inputMI);
 
         LCD_SetPixel(LCD_MakePoint(X0 + i, 135), LCD_BLUE);// progress line
         LCD_SetPixel(LCD_MakePoint(X0 + i, 136), LCD_BLUE);
-    }
-
-    for(i = 0; i <= WWIDTH; i++)
-    {
-        valuesdBI[i] = OSL_TXTodB(valuesdBI[i], valuesmI[i]);//valuesdBI = frequ1 !!
     }
 
     FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 420, 0, "     ");
@@ -727,11 +687,12 @@ void TrackTouchExecute(LCDPoint pt){
             //BSP_LCD_SelectLayer(activeLayerS21);
             sprintf(tmpBuff, " AUTO SPEED : [%d] ", autoMeasureSpeed);
             FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 60, 0, tmpBuff);
-            TRACK_DrawFootText();
+            Track_DrawGrid(2);
             //BSP_LCD_SelectLayer((1+activeLayerS21)%2);
             //FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 65, 0, tmpBuff);
-            TRACK_DrawFootText();
+            //TRACK_DrawFootText();
             firstRun=1;
+            cursorChangeCount = 0;
             LCD_FillRect(LCD_MakePoint(40, 15), LCD_MakePoint(459 , 225), BackGrColor);
             Track_DrawGrid(1);
             //BSP_LCD_SelectLayer(activeLayerS21);
@@ -768,10 +729,8 @@ void TrackTouchExecute(LCDPoint pt){
             break;
         }
         case 1:{    //SCAN
-            if (autofast)
-            {
-                autofast = 0;
-            }
+            if (autofast) break;
+
             FONT_Write(FONT_FRANBIG, LCD_RED, LCD_BLACK, 180, 100, "  Scanning...  ");
             redrawRequired = 1;
             break;
@@ -821,7 +780,7 @@ void TrackTouchExecute(LCDPoint pt){
 
 void SetMeasPointS21(uint32_t i, int yofsNew, int yofs){
 int lmod = 5;
-int k, length, pos =WY(yofs), posNew = WY(yofsNew);
+int k, length, pos =yofs, posNew = yofsNew;
 
     if(i==WWIDTH)  firstRun=0;
 
@@ -836,19 +795,7 @@ int k, length, pos =WY(yofs), posNew = WY(yofsNew);
     if(FatLines){
         LCD_SetPixel(LCD_MakePoint(i+X0, pos-1), c);// WK
     }
-    /*
-    if((i%linediv==0)||(i%(linediv*lmod)==1)){// delete the old pixel(s)
-        LCD_SetPixel(LCD_MakePoint(i+X0, pos), WGRIDCOLOR);
-        if(FatLines){
-            LCD_SetPixel(LCD_MakePoint(i+X0, pos-1), WGRIDCOLOR);// WK
-        }
-    }
-    else{
-        LCD_SetPixel(LCD_MakePoint(i+X0, pos), BackGrColor);
-        if(FatLines){
-            LCD_SetPixel(LCD_MakePoint(i+X0, pos-1), BackGrColor);// WK
-        }
-    }*/
+
     if(i==cursorPos){
         LCD_SetPixel(LCD_MakePoint(i+X0, posNew), LCD_COLOR_RED);// set the new pixel(s)
         if(FatLines){
@@ -874,14 +821,12 @@ uint32_t deltaF, returni=0;
 int i0, i1, i2, yofs, yofsNew;
 float newValue;
 
-    DSP_MeasureTrack(freq1, 1, 1, 1);
-
     deltaF=(BSVALUES_TRACK[span21] * 1000) / WWIDTH;
     nScanCount = CFG_GetParam(CFG_PARAM_PAN_NSCANS);
     for(i = 0; i <= WWIDTH; i++)
     {
         freq1 = fstart + i * deltaF;
-        k= i / autoMeasureSpeed;                                           //  Break/Exit by Touch
+        k= i / autoMeasureSpeed;                    //  Break/Exit by Touch
         if ((0 == (i % 80)) && TOUCH_Poll(&pt)){
             returni=1;
             break;
@@ -890,10 +835,10 @@ float newValue;
         if (i % autoMeasureSpeed == 0)
         {
             DSP_MeasureTrack(freq1, 1, 1, nScanCount);
-            valuesmI[i] = DSP_MeasuredTrackValue();
-            newValue = OSL_TXTodB(freq1, valuesmI[i]);
-            yofsNew = WHEIGHT + newValue * displayRate;
-            yofs = WHEIGHT + valuesdBI[i] * displayRate;
+            valuesmI[i] = -log10(DSP_MeasuredTrackValue());
+            newValue = OSL_Calc_dBPix(freq1, valuesmI[i]);////////
+            yofsNew = Y0 + newValue;
+            yofs=Y0+valuesdBI[i];
             valuesdBI[i]=newValue;
             if((yofs!=yofsNew)||(firstRun==1))
                 SetMeasPointS21(i, yofsNew, yofs);
@@ -906,8 +851,8 @@ float newValue;
                     //Interpolate previous intermediate values linear
                     valuesmI[m] = valuesmI[i2] + (valuesmI[i0] - valuesmI[i2]) * (m-i2) / autoMeasureSpeed;
                     newValue = valuesdBI[i2] + (valuesdBI[i0] - valuesdBI[i2]) * (m-i2) / autoMeasureSpeed;
-                    yofsNew = WHEIGHT + newValue * displayRate;
-                    yofs = WHEIGHT + valuesdBI[m] * displayRate;
+                    yofsNew = Y0 + newValue;
+                    yofs = Y0 + valuesdBI[m];
                     valuesdBI[m]=newValue;
                     if((yofs!=yofsNew)||(firstRun==1))
                         SetMeasPointS21(m, yofsNew, yofs);
@@ -921,52 +866,33 @@ float newValue;
 
 int lastoffset;
 
-static void Track_DrawCurve(int SelQu, int SelEqu)// SelQu=1, if quartz measurement  SelEqu=1, if equal scales
+static void Track_DrawCurve(void)// SelQu=1, if quartz measurement  SelEqu=1, if equal scales
 {
 #define LimitR 1999.f
     int i, imax;
-    int x, RXX0;
+    int x, yofs;
 
     if (!isMeasured)
         return;
     Track_DrawGrid(1);
-    RXX0 = X0;
 
-
-    //Draw  labels
-    int yofs = 0;
-    int yofs_sm = 0;
-
-    //Now draw graph
-    lastoffset = 0;
     for(i = 0; i <= WWIDTH; i++)
     {
-        x = RXX0 + i;
+        x = X0 + i;
 
-        yofs = valuesdBI[i] * displayRate + displayOffset;
+        yofs = valuesdBI[i] + Y0;
 
-        if (yofs > 193)
+        if (yofs > 208)
         {
-            yofs = 193;
+            yofs = 208;
         }
-        else if (yofs < 0)
+        else if (yofs < Y0)
         {
-            yofs = 0;
+            yofs = Y0;
         }
-
-        if(i == 0)
-        {
-            LCD_SetPixel(LCD_MakePoint(x, WY(yofs)), LCD_WHITE);//LCD_RGB(SM_INTENSITY, 0, 0
-        }
-        else
-        {
-            LCD_Line(LCD_MakePoint(x - 1, WY(lastoffset)), LCD_MakePoint(x, WY(yofs)), LCD_WHITE);
-            if(FatLines){
-                LCD_Line(LCD_MakePoint(x - 1, WY(lastoffset)+1), LCD_MakePoint(x, WY(yofs)+1), LCD_WHITE);// WK
-            }
-        }
-
-        lastoffset = yofs;
+        LCD_SetPixel(LCD_MakePoint(x, yofs), LCD_WHITE);
+        if(FatLines)
+            LCD_SetPixel(LCD_MakePoint(x , yofs+1), LCD_WHITE);// WK
     }
     DrawCursorS21();
     cursorVisibleS21=1;
@@ -975,9 +901,7 @@ static void Track_DrawCurve(int SelQu, int SelEqu)// SelQu=1, if quartz measurem
 static void RedrawWindowS21(int justGraphDraw)
 {
     Track_DrawGrid(justGraphDraw);
-    Track_DrawCurve(0, 0);// 1
-    DrawCursorS21();
-
+    Track_DrawCurve();// 1
 
     if (! justGraphDraw)
     {
@@ -1034,6 +958,7 @@ void Track_Proc(void)
 
 uint32_t fxkHzs;//Scan range start frequency, in kHz
 uint32_t fxs;
+extern int OSL_ENTRIES;
 
     redrawRequired = exitScan = 0;
     //allocated memory
@@ -1045,7 +970,7 @@ uint32_t fxs;
     cursorVisibleS21=0;// in the beginning not visible
     SetColours();
     LCD_FillAll(BackGrColor);
-    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 170, 100, "VNA |S21|Gain");
+    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 170, 100, " |S21|Gain");
     Sleep(1000);
     while(TOUCH_IsPressed());
     autofast=0;
@@ -1082,6 +1007,8 @@ uint32_t fxs;
     DrawAutoText();
     while(!TOUCH_IsPressed());
     saveAutofast=1;
+    BSP_LCD_SelectLayer(activeLayerS21);
+    LCD_FillAll(BackGrColor);
     BSP_LCD_SelectLayer((1+activeLayerS21)%2);
     LCD_FillAll(BackGrColor);
     Track_DrawGrid(0);
@@ -1112,10 +1039,10 @@ uint32_t fxs;
                 CFG_Flush();
                 MakeFstart();// and span
                 isMeasured = 0;
-                Track_DrawGrid(0);
-               /* BSP_LCD_SelectLayer((1+activeLayerS21)%2);
-                Track_DrawGrid(0);
-                BSP_LCD_SelectLayer(activeLayerS21);*/
+                Track_DrawGrid(2);
+                BSP_LCD_SelectLayer((1+activeLayerS21)%2);
+                Track_DrawGrid(2);
+                BSP_LCD_SelectLayer(activeLayerS21);
                 redrawRequired = 0;
                 firstRun=1;
                 cursorVisibleS21=0;
@@ -1131,11 +1058,11 @@ uint32_t fxs;
             BSP_LCD_SetLayerVisible_NoReload(activeLayerS21, 1);//  ?
             BSP_LCD_SetLayerVisible((1+activeLayerS21)%2, 0);*/
             Scan21Fast();
-            DrawMeasuredValues();
             if(cursorVisibleS21==0)
                 DrawCursorS21();
             cursorVisibleS21=1;
-           /* BSP_LCD_SetLayerVisible_NoReload(activeLayerS21, 1);//  ?
+            DrawMeasuredValues();
+           /* BSP_LCD_SetLayerVisible_NoReload(activeosl_txCorrLayerS21, 1);//  ?
             BSP_LCD_SetLayerVisible((1+activeLayerS21)%2, 0);*/
             redrawRequired = 0;
         }
@@ -1149,7 +1076,7 @@ uint32_t fxs;
     }   //end of for(;;)
     GEN_SetClk2Freq(0);// CLK2 off
     //Release Memory
-    free(valuesmI);
     free(valuesdBI);
+    free(valuesmI);
     isMeasured = 0;
 }

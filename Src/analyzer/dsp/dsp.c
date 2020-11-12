@@ -521,95 +521,49 @@ void DSP_MeasureTrack(uint32_t freqHz, int applyErrCorr, int applyOSL, int nMeas
     int i;
     int retries = 3;
 
-    //assert_param(nMeasurements > 0);
-    //if (nMeasurements > MAXNMEAS)
-    //    nMeasurements = MAXNMEAS;
 
-/*
-    if (freqHz == 0)
-    {
-        freqHz = GEN_GetLastFreq();
+    if (freqHz < BAND_FMIN || freqHz > CFG_GetParam(CFG_PARAM_BAND_FMAX))
+    { // Set defaults for out of band measurements
+        magmv_v = 500.f;
+        magmv_i = 500.f;
+        phdifdeg = 0.f;
+        magdifdb = 0.f;
+        mZ = 50.0f + 0.0fi;
+        return;
     }
-    else
-    {
-*/
-        if (freqHz < BAND_FMIN || freqHz > CFG_GetParam(CFG_PARAM_BAND_FMAX))
-        { // Set defaults for out of band measurements
-            magmv_v = 500.f;
-            magmv_i = 500.f;
-            phdifdeg = 0.f;
-            magdifdb = 0.f;
-            mZ = 50.0f + 0.0fi;
-            return;
-        }
-        GEN_SetTXFreq(freqHz);
-    //}
+    GEN_SetTXFreq(freqHz);
+
     //Init
     memset(audioBuf, 0, sizeof(audioBuf));
 
-    for (i = 0; i < nMeasurements; i++)
+    for (i = 0; i <= nMeasurements; i++)
     {
 
         DSP_Sample(); //TILE:4.7Sec
         res_i = DSP_FFT(0); //Input //TILE:0.3Sec
-        //res_v = DSP_FFT(1); //Output
 
-        mag_v_buf[i] = crealf(res_v);
+       // mag_v_buf[i] = crealf(res_v);
         mag_i_buf[i] = crealf(res_i);
-        //pdif = cimagf(res_i) - cimagf(res_v);
-        //Correct phase difference quadrant
-        //pdif = fmodf(pdif + M_PI, 2 * M_PI) - M_PI;
 
-        /*
-        if (pdif < -M_PI)
-            pdif += 2 * M_PI;
-        else if (pdif > M_PI)
-            pdif -= 2 * M_PI;
-
-        phdif_buf[i] = pdif;
-        */
     }
 
     //Now perform filtering to remove outliers with sigma > 1.0
-    //mag_v = DSP_FilterArray(mag_v_buf, nMeasurements, retries);
     mag_i = DSP_FilterArray(mag_i_buf, nMeasurements, retries);
-
-/*
-    if (applyErrCorr)
-    {
-        OSL_CorrectTX(freqHz, &mag_i);
-    }
-*/
-    //phdif = DSP_FilterArray(phdif_buf, nMeasurements, retries);
-    /*
-    if (mag_v == 0.0f || mag_i == 0.0f || phdif == 0.0f)
-    {//need to measure again : too much noise detected
-        retries--;
-        goto REMEASURE;
-    }
-    */
 
     magmv_i = mag_i * MCF;
 }
 
 float DSP_MeasuredTrackValue(void)
 {
-    /*
-    uint8_t attvalue = VOLUME_IN_CONVERT(100 - CFG_GetParam(CFG_PARAM_LIN_ATTENUATION));
-    float dbatt = (239 - attvalue) * 0.375f;
-    float fatt = powf(10.f, dbatt / 20);
-    return magmv_i * fatt;
-    */
 
-    //return DSP_MeasuredMagImv() * 3;    //Input MiliVolt
-    //return (20 * log10f(DSP_MeasuredMagImv()) ) * 4;
-    return DSP_MeasuredMagImv();
+    return magmv_i;
+    //return DSP_MeasuredMagImv();
 }
 
 float DSP_MeasureTrackCal(void)
 {
-    //return magmv_i;
-    return DSP_MeasuredMagImv();
+    return magmv_i;
+    //return DSP_MeasuredMagImv();
 }
 
 //extern float complex OSL_CorrectZ_LC(uint32_t fhz, float complex zMeasured);

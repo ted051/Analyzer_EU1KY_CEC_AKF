@@ -14,6 +14,7 @@
 #define OSL_BASE_R0 50.0f // Note: all OSL calibration coefficients are calculated using G based on 50 Ohms, not on CFG_PARAM_R0 !!!
 
 extern void Sleep(uint32_t);
+extern void progress_cb(uint32_t new_percent);
 
 static float _nonz(float f) __attribute__((unused));
 static float complex _cnonz(float complex f) __attribute__((unused));
@@ -38,11 +39,6 @@ typedef union
 } S_OSLDATA;
 
 //Hardware error correction structure
-typedef struct
-{
-    float mag0;    //Magnitude ratio correction coefficient
-    float phase0;  //Phase correction value
-} OSL_ERRCORR;
 
 typedef enum
 {
@@ -54,15 +50,14 @@ typedef enum
     OSL_FILE_SCANNED_ALL = OSL_FILE_SCANNED_SHORT | OSL_FILE_SCANNED_LOAD | OSL_FILE_SCANNED_OPEN
 } OSL_FILE_STATUS;
 
-//#define OSL_SCAN_STEP           (100000)
-//#define OSL_SCAN_STEP           (150000)
 #define OSL_SMALL_SCAN_STEP     (100000)
 #define OSL_SCAN_STEP           (300000)
+// result: 1499 + 4333 = 5832 scan steps (100 kHz ... 1450 MHz)
+
 #define OSL_TABLES_IN_SDRAM     (0)
 
 #define OSL_FREQUENCY_BORDER     (150000000)
 // maximal possible entries:
-//#define OSL_ENTRIES ((MAX_BAND_FREQ - BAND_FMIN) / OSL_SCAN_STEP + 1)
 #define OSL_ENTRIES ((MAX_BAND_FREQ - OSL_FREQUENCY_BORDER) / OSL_SCAN_STEP + (OSL_FREQUENCY_BORDER-BAND_FMIN) / OSL_SMALL_SCAN_STEP +1)
 // used entries:
 #define OSL_NUM_VALID_ENTRIES ((CFG_GetParam(CFG_PARAM_BAND_FMAX) - OSL_FREQUENCY_BORDER)/OSL_SCAN_STEP +(OSL_FREQUENCY_BORDER-CFG_GetParam(CFG_PARAM_BAND_FMIN)) / OSL_SMALL_SCAN_STEP + 1)
@@ -91,11 +86,11 @@ static OSL_FILE_STATUS osl_file_status = OSL_FILE_EMPTY;
 static OSL_ERRCORR osl_errCorr[OSL_ENTRIES] = { 0 };
 static S_OSLDATA osl_data[OSL_ENTRIES] = { 0 };
 
-static float *WORK_BUFF[OSL_ENTRIES * sizeof(OSL_ERRCORR) / sizeof(float)] = {0};
+static float WORK_BUFF[OSL_ENTRIES * sizeof(OSL_ERRCORR) / sizeof(float)] = {0};
 
 int WorkBuffMode = 0;   //0: Not use, 1:OSL, 2:VNA, 3:LC, 4...
-static OSL_ERRCORR *osl_txCorr = (OSL_ERRCORR *)WORK_BUFF;
-static S_OSLDATA *lc_osl_data = (S_OSLDATA *)WORK_BUFF;
+static OSL_ERRCORR *osl_txCorr = (OSL_ERRCORR *)&WORK_BUFF[0];
+static S_OSLDATA *lc_osl_data = (S_OSLDATA *)&WORK_BUFF[0];
 
 #ifdef _DEBUG_UART
 void PrintOSLSize(void)
@@ -126,10 +121,13 @@ static uint32_t OSL_GetCalFreqByIdx(int32_t idx)
     else
         return OSL_FREQUENCY_BORDER + (idx -MID_IDX)* OSL_SCAN_STEP;
 }
+int Get_OSL_Entries(void){
+    return OSL_ENTRIES;
+}
 
 //Fix by OM0IM: now returns floor instead of round in order to linearly interpolate
 //HW calibration in OSL_CorrectErr(). This improves precision on low frequencies.
-static int GetIndexForFreq(uint32_t fhz)
+int GetIndexForFreq(uint32_t fhz)
 {
     int idx = -1;
     if (fhz < CFG_GetParam(CFG_PARAM_BAND_FMIN))
@@ -685,6 +683,8 @@ void OSL_LoadTXCorr(void)
     osl_tx_loaded = 0;
     WorkBuffMode = 0;
 
+    osl_txCorr= (OSL_ERRCORR *)&WORK_BUFF[0];// DH1AKF
+
     sprintf(path, "%s/txcorr.osl", g_cfg_osldir);
     res = f_open(&fp, path, FA_READ | FA_OPEN_EXISTING);
     if (FR_OK != res)
@@ -698,18 +698,21 @@ void OSL_LoadTXCorr(void)
     WorkBuffMode = 2;
 }
 
+
 void OSL_ScanTXCorr(void(*progresscb)(uint32_t))
 {
-    uint32_t i;
-    float trackCalValue;
-    WorkBuffMode = 0;
+uint32_t i;
+float trackCalValue;
 
+    WorkBuffMode = 2;
+    osl_txCorr=(OSL_ERRCORR*)&WORK_BUFF[0];
+    S21progress_cb(0);
     for (i = 0; i < OSL_NUM_VALID_ENTRIES; i++)
     {
         uint32_t freq = OSL_GetCalFreqByIdx(i);
 
         //GEN_SetTXFreq(freq);    //TX Via S2
-        DSP_MeasureTrack(freq, 0, 0, 1);
+        DSP_MeasureTrack(freq, 0, 0, 2);
         trackCalValue = DSP_MeasureTrackCal();
 
         if (trackCalValue < 0.0000001)// was 0.3
@@ -717,14 +720,38 @@ void OSL_ScanTXCorr(void(*progresscb)(uint32_t))
             CRASH("No signal");
         }
 
-        osl_txCorr[i].mag0 = trackCalValue;
+        osl_txCorr[i].mag0 = log10(_nonz(trackCalValue));
         osl_txCorr[i].phase0 = 0;
 
-        if (progresscb)
-            progresscb((i * 100) / OSL_NUM_VALID_ENTRIES);
+        if (S21progress_cb)
+            S21progress_cb((i * 100) / OSL_NUM_VALID_ENTRIES);
     }
     GEN_SetMeasurementFreq(0);
+}
 
+
+void OSL_ScanTXAttenuator(void(*progresscb)(uint32_t))
+{
+uint32_t i;
+
+    S21progress_cb(0);
+
+    for (i = 0; i < OSL_NUM_VALID_ENTRIES; i++)
+    {
+        uint32_t freq = OSL_GetCalFreqByIdx(i);
+
+        DSP_MeasureTrack(freq, 0, 0, 2);
+
+        osl_txCorr[i].phase0 = log10(_nonz(DSP_MeasureTrackCal()));
+
+        if (S21progress_cb)
+            S21progress_cb((i * 100) / OSL_NUM_VALID_ENTRIES);
+    }
+    SaveS21CorrToFile();
+}
+
+void SaveS21CorrToFile(void){
+    GEN_SetMeasurementFreq(0);
     //Store to file
     FRESULT res;
     FIL fp;
@@ -744,45 +771,22 @@ void OSL_ScanTXCorr(void(*progresscb)(uint32_t))
     WorkBuffMode = 2;
 }
 
-//Linear interpolation added by OM0IM
-//void OSL_CorrectTX(uint32_t fhz, float *magdif, float *phdif)
-void OSL_CorrectTX(uint32_t fhz, float *magdif)
-{
-    if (!osl_tx_loaded)
-        return;
+#define WHEIGHT 190
 
-    if (WorkBuffMode != 2)
-        return;
-
-    int idx = GetIndexForFreq(fhz);
-    if (-1 == idx)
-        return;
-    float correct;
-    if (fhz >= CFG_GetParam(CFG_PARAM_BAND_FMAX))
-        correct = 0.0f;
-    else
-    {
-        correct = osl_txCorr[idx + 1].mag0;
-        correct = correct - osl_txCorr[idx].mag0;
-    }
-
-    *magdif *= osl_txCorr[idx].mag0;
-}
-
-float OSL_TXTodB(uint32_t fhz, float magdif)
+int OSL_Calc_dBPix(uint32_t fhz, float inp)
 {
     if (!osl_tx_loaded)
         return 0;
-
     if (WorkBuffMode != 2)
         return 0;
-
-    int idx = GetIndexForFreq(fhz);
-    if (-1 == idx)
-        return 0;
-
-    return (20 * log10(magdif / osl_txCorr[idx].mag0));
+int idx = GetIndexForFreq(fhz);
+float Corr0dB=-osl_txCorr[idx].mag0;     // Corr value 0 dB
+float CorrAtt=-osl_txCorr[idx].phase0;   // Corr value with attenuator
+float dB=(float)CFG_GetParam(CFG_PARAM_ATTENUATOR);
+return (WHEIGHT*dB/65.)*(inp-Corr0dB)/_nonz(CorrAtt-Corr0dB);
 }
+
+
 //-----------------------------------------------------------------------------
 
 //===========================================================
