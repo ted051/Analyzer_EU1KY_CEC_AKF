@@ -1227,7 +1227,7 @@ static const TEXTBOX_t tb_menu2[] = {
                  .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = OSL_CalWnd , .cbparam = 1, .next = (void*)&tb_menu2[1] },
     (TEXTBOX_t){.x0 = COL1, .y0 = 70, .text =    " HW Calibration, only at first run !!!  ", .font = FONT_FRANBIG,.width = 440, .height = 34, .center = 1,
                  .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = OSL_CalErrCorr , .cbparam = 1, .next = (void*)&tb_menu2[2] },
-    (TEXTBOX_t){.x0 = COL1, .y0 = 120, .text =   "|S21] Gain Calibration for VNA ", .font = FONT_FRANBIG,.width = 440, .height = 34, .center = 1,
+    (TEXTBOX_t){.x0 = COL1, .y0 = 120,.nowait = 1, .text =   "|S21] Gain Calibration ", .font = FONT_FRANBIG,.width = 440, .height = 34, .center = 1,
                  .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = OSL_CalTXCorr , .cbparam = 1, .next = (void*)&tb_menu2[3] },
     (TEXTBOX_t){.x0 = COL1, .y0 =170, .text =  " Oscillator Test (Fmax) ", .font = FONT_FRANBIG,.width = 440, .height = 34, .center = 1,
                  .border = 1, .fgcolor = M_FGCOLOR, .bgcolor = M_BGCOLOR, .cb = OsciTest , .cbparam = 1, .next = (void*)&tb_menu2[4] },

@@ -2996,6 +2996,7 @@ void PANVSWR2_Proc(void)// *****************************************************
 {
 int Beeper=0;
 
+    rqExitSWR=false;
     activeLayerX=1;
     BSP_LCD_SelectLayer(activeLayerX);
     LCD_ShowActiveLayerOnly();
@@ -3083,7 +3084,7 @@ int Beeper=0;
     BSP_LCD_SelectLayer(activeLayerX);
     LCD_FillAll(BackGrColor);
 
-    for(;;)
+    while(!rqExitSWR)
     {
         Sleep(0); //for autosleep to work
         if (TOUCH_Poll(&pt))
@@ -3127,28 +3128,16 @@ int Beeper=0;
                     autofast=0;
                 }
             }
-            if (TEXTBOX_HitTest(&SWR1)) {
-                if (rqExitSWR)
-                {
-                    rqExitSWR=false;
-                    while(TOUCH_IsPressed());
-                    autofast = 0;
-                    Sleep(100);
+        }
+        if (TEXTBOX_HitTest(&SWR1)) Sleep(10);
 
-                    free(SavedValues1);
-                    free(SavedValues2);
-                    free(SavedValues3);
-                    return;
-                }
-            }
-            if(BeepOn1==1&&Beeper==1){
-                UB_TIMER2_Init_FRQ(880);
-                UB_TIMER2_Start();
-                Sleep(100);
-                UB_TIMER2_Stop();
-                Beeper=0;
-               // redrawRequired=1;//in case of "Save Snapshot"
-            }
+        if(BeepOn1==1&&Beeper==1){
+            UB_TIMER2_Init_FRQ(880);
+            UB_TIMER2_Start();
+            Sleep(100);
+            UB_TIMER2_Stop();
+            Beeper=0;
+           // redrawRequired=1;//in case of "Save Snapshot"
         }
         else
         {
@@ -3177,6 +3166,10 @@ int Beeper=0;
         }
         LCD_ShowActiveLayerOnly();
     }
+    Sleep(100);
+    free(SavedValues3);
+    free(SavedValues2);
+    free(SavedValues1);
 }
 
 
