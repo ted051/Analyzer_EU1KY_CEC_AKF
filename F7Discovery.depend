@@ -18300,7 +18300,7 @@
 	<complex.h>
 	"stm32746g_discovery_audio.h"
 
-1605184892 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\osl\oslfile.h
+1605288963 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\osl\oslfile.h
 	<complex.h>
 	<stdint.h>
 
@@ -18519,7 +18519,7 @@
 	<complex.h>
 	"lcd.h"
 
-1603209112 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\lcd\textbox.c
+1605301292 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\lcd\textbox.c
 	"textbox.h"
 	"LCD.h"
 	"touch.h"
@@ -18718,7 +18718,7 @@
 
 1560179200 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\fftwnd.h
 
-1605209504 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\generator.c
+1605285249 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\generator.c
 	<stdint.h>
 	<stdio.h>
 	"LCD.h"
@@ -18753,7 +18753,7 @@
 	"keyboard.h"
 	"textbox.h"
 
-1603122367 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\mainwnd.c
+1605287865 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\mainwnd.c
 	<stdio.h>
 	<string.h>
 	<ctype.h>
@@ -18791,7 +18791,7 @@
 
 1602520380 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\measurement.h
 
-1560179200 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\oslcal.h
+1605289450 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\oslcal.h
 
 1560179200 g:\daten\analyzer_eu1ky_cec_akf\src\usbd\usbd_storage.h
 	"usbd_msc.h"
@@ -18805,7 +18805,7 @@
 
 1560179200 g:\daten\analyzer_eu1ky_cec_akf\src\fatfs\drivers\sd_diskio.h
 
-1605211353 g:\daten\analyzer_eu1ky_cec_akf\src\inc\build_timestamp.h
+1605301679 g:\daten\analyzer_eu1ky_cec_akf\src\inc\build_timestamp.h
 
 1560179200 g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\tdr.h
 
@@ -18882,7 +18882,7 @@
 	"textbox.h"
 	"mainwnd.h"
 
-1605186151 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\oslcal.c
+1605301356 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\oslcal.c
 	<stdio.h>
 	<string.h>
 	"config.h"
@@ -18892,6 +18892,7 @@
 	"hit.h"
 	"textbox.h"
 	"oslfile.h"
+	"oslcal.h"
 
 1604680614 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\panfreq.c
 	<stdio.h>
@@ -18908,7 +18909,7 @@
 	"panfreq.h"
 	"panvswr2.h"
 
-1605203408 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\panvswr2.c
+1605296481 source:g:\daten\analyzer_eu1ky_cec_akf\src\analyzer\window\panvswr2.c
 	<stdint.h>
 	<stdio.h>
 	<string.h>
