@@ -763,10 +763,10 @@ static void DecrCursor()
     {
         DrawCursorText();
     }
-    TEXTBOX_DrawContext(&SWR1);
+    //TEXTBOX_DrawContext(&SWR1);
     if (cursorChangeCount++ < 5)
         Sleep(100); //Slow down at first steps
-    Sleep(1);
+    Sleep(5);
 }
 
 static void IncrCursor()
@@ -790,11 +790,11 @@ static void IncrCursor()
     {
         DrawCursorText();
     }
-    TEXTBOX_DrawContext(&SWR1);
+    //TEXTBOX_DrawContext(&SWR1);
     if (cursorChangeCount++ < 5)
         Sleep(100); //Slow down at first steps
 
-    Sleep(1);
+    Sleep(5);
 }
 
 static GRAPHTYPE grTypeOld;
@@ -2991,11 +2991,23 @@ void DrawLoadStoreStatus()
     LCD_Rectangle(LCD_MakePoint(454, 154), LCD_MakePoint(478, 179), memoryDrawColor);
 }
 
+static int Beeper=0;
+
+void OneBeep(int repeatNumber){ // one or (repeatNumber) of beeps
+int counter=repeatNumber;
+    if((BeepOn1==1)&&(Beeper==1)){
+        while (--counter>=0){
+            UB_TIMER2_Init_FRQ(880);
+            UB_TIMER2_Start();
+            Sleep(100);
+            UB_TIMER2_Stop();
+        }
+    }
+}
+
 
 void PANVSWR2_Proc(void)// **************************************************************************+*********
 {
-int Beeper=0;
-
     rqExitSWR=false;
     activeLayerX=1;
     BSP_LCD_SelectLayer(activeLayerX);
@@ -3087,19 +3099,17 @@ int Beeper=0;
     while(!rqExitSWR)
     {
         Sleep(0); //for autosleep to work
+        if (TEXTBOX_HitTest(&SWR1)) Sleep(10);
+
         if (TOUCH_Poll(&pt))
         {
+            Beeper=1;
             if(pt.y<60) Frequency();//              Special Functions (invisible)
             else if((pt.y<190)&&(pt.x>60)&&(pt.x<400))
             {
                 DiagType();// next diagram type
                 ClearScreen=1;
-                if(BeepOn1==1){
-                    UB_TIMER2_Init_FRQ(880);
-                    UB_TIMER2_Start();
-                    Sleep(100);
-                    UB_TIMER2_Stop();
-                }
+                OneBeep(1);
                 Sleep(200);
             }
             else if((pt.y>205)&&(pt.y<235)&&(pt.x >=X0)){// Set Cursor
@@ -3107,43 +3117,38 @@ int Beeper=0;
                 if(cursorPos>WWIDTH-10) cursorPos=WWIDTH-10;
                 ManualCursor=1;
                 redrawRequired=1;
-                Beeper=1;
+                OneBeep(1);
                 Sleep(200);
             }
             else if((pt.x>=0)&&(pt.x<=44))
             {
-                Beeper=1;
                 if((pt.y>=93)&&(pt.y<=128)){//       "<"
-                    redrawRequired=0;
-                    DecrCursor();
-                    if(cursorChangeCount>=5)
-                        Beeper=0;
                     autofast=0;
+                    redrawRequired=0;
+                    OneBeep(1);
+                    DecrCursor();
+                    while(TOUCH_IsPressed()){
+                        DecrCursor();
+                        if(cursorChangeCount>=5)
+                            Beeper=0;
+                    }
+                    cursorChangeCount=0;
                 }
                 else if((pt.y>=132)&&(pt.y<=167)){// ">"
-                    redrawRequired=0;
-                    IncrCursor();
-                    if(cursorChangeCount>=5)
-                        Beeper=0;
                     autofast=0;
+                    redrawRequired=0;
+                    OneBeep(1);
+                    IncrCursor();
+                    while(TOUCH_IsPressed()){
+                        IncrCursor();
+                        if(cursorChangeCount>=5)
+                            Beeper=0;
+                    }
+                    cursorChangeCount=0;
                 }
             }
         }
-        if (TEXTBOX_HitTest(&SWR1)) Sleep(10);
-
-        if(BeepOn1==1&&Beeper==1){
-            UB_TIMER2_Init_FRQ(880);
-            UB_TIMER2_Start();
-            Sleep(100);
-            UB_TIMER2_Stop();
-            Beeper=0;
            // redrawRequired=1;//in case of "Save Snapshot"
-        }
-        else
-        {
-            cursorChangeCount = 0;
-            beep=0;
-        }
 
         if(autofast==0){
             holdScale=0;
