@@ -1,10 +1,8 @@
 # antennaanalyzer
-# Currently I am preparing to release source code. Please wait some days.
-EU1KY Antenna Analyzer Firmware CEC Version
+EU1KY Antenna Analyzer Firmware modified by DH1AKF and KD8CEC
+Actual informations you can find at https://groups.io/g/Analyzer-EU1KY
 
-This is in preparation for source distribution.
-
-Firmware information can be found in the link below.
+Older Firmware information can be found in the link below.
 http://www.hamskey.com
 
 EU1KY site README.md
@@ -15,17 +13,13 @@ The EU1KY antenna analyzer V3 is an open source project to build your own, reaso
 
 See [Wiki](https://bitbucket.org/kuchura/eu1ky_aa_v3/wiki/Home) for details.
 
+Other related sites: 
+
+http://www.wkiefer.de/x28/EU1KY_AA.htm
+
+http://ha3hz.hu/hu/home/top-nav/12-seged-berendezesek/12-eu1ky-antenna-analizator
+
 ## Contribution policy ##
 
-If you have something to add to the source code, some feature or an improvement:
+If you have something to add to the source code, some feature or an improvement, please contact DH1AKF (DH1AKF@DARC.DE) or KD8CEC via hamskey.com
 
-* fork the repository to your bitbucket account (create it if you don't have any)
-* clone your fork to your computer
-* create your own branch in the forked repo
-* implement and test your changes thoroughly
-* commit your changes to your branch
-* pull and merge in latest changes from **EU1KY** branch (which is actually the main development branch with all the features being tested)
-* push your branch to your bitbucket fork
-* in the bitbucket account, create pull request to the **EU1KY** branch of the parent repo (this one). I will review and test it and, if everything is OK, will include your code to the **default** branch which is considered an official pre-release now and all the binaries are built from it
-
-*Please don't use TAB characters in the code, always use 4 spaces instead. Turn on showing whitespaces in your editor and check your changes before commiting.*
