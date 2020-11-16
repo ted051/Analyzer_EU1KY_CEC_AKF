@@ -231,7 +231,7 @@ uint32_t xx1,xx2,yy1,yy2;
                         TEXTBOX_previous=pbox;
                         TEXTBOX_repeats++;
                         Sleep(400);
-                        return 0;
+                        return 2;
                     }
                     if(pbox==TEXTBOX_previous){
                         if(TEXTBOX_repeats>=5){
