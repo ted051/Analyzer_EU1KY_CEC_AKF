@@ -98,7 +98,6 @@ extern uint8_t second;
 static FILINFO fno;
 static int voltage;
 static bool rqExit1;
-
 static void USBD_Proc()
 {
     while(TOUCH_IsPressed());
@@ -463,6 +462,7 @@ int counter11;
     //KD8CEC
     BSP_LCD_SelectLayer(1);
     LCD_ShowActiveLayerOnly();
+
     LCD_DrawBitmap(LCD_MakePoint(0, 0), mainimg_bmp, mainimg_bmp_size);
 
 

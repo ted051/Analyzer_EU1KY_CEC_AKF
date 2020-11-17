@@ -123,6 +123,12 @@ int main(void)
     if (ShowLogo()==-1)// no logo.bmp or logo.png file found:
         LCD_DrawBitmap(LCD_MakePoint(90, 24), logo_bmp, logo_bmp_size);// show original logo
 #endif
+ int WaitTime= 10 * CFG_GetParam(CFG_PARAM_ShowLogoTime);// to show logo n seconds or until touch
+    do {
+        Sleep(100);
+        if (TOUCH_IsPressed()) break;
+    } while (--WaitTime >=0);
+
 
     //TODO : Remove comment before Release / by KD8CEC
     //Sleep (3000);
@@ -154,6 +160,7 @@ int main(void)
     else  RTCpresent=1;
 //  RTCpresent=false;//   ************************** TEST
     //Run main window function
+
     MainWnd(); //Never returns
 
     return 0;

@@ -434,29 +434,18 @@ static const CFG_CHANGEABLE_PARAM_DESCR_t cfg_ch_descr_table[] =
         .strvalues = CFG_SARR("10 dB", "20 dB", "30 dB", "40 dB", "50 dB", "60 dB"),
         .dstring = "Calibrate S21 with additional Attenuator",
     },
+    {
+        .id = CFG_PARAM_ShowLogoTime,           // added by DH1AKF
+        .idstring = "Show Logo Time",     // 16.11.2020
+        .type = CFG_PARAM_T_U32,
+        .nvalues = 6,
+        .values = CFG_IARR(5,10,20,30,60,3600),
+        .strvalues = CFG_SARR("5 s", "10 s", "20 s", "30 s", "1 min", "1 hour"),
+        .dstring = "Choose the time for logo view",
+    },
 };
 
 static const uint32_t cfg_ch_descr_table_num = sizeof(cfg_ch_descr_table) / sizeof(CFG_CHANGEABLE_PARAM_DESCR_t);
-
-//changed by wk
-/*
-void CFG_Init_additions(void){// wk 21.01.2019
-    CFG_SetParam(CFG_PARAM_BAND_FMIN, 100000ul);
-    CFG_SetParam(CFG_PARAM_BAND_FMAX, 600000000ul);
-    CFG_SetParam(CFG_PARAM_SI5351_MAX_FREQ, 200000000ul);
-    CFG_SetParam(CFG_PARAM_SI5351_CAPS, 3);
-    CFG_SetParam(CFG_PARAM_TDR_VF, 66);
-    CFG_SetParam(CFG_PARAM_MULTI_F1, 3600000);
-    CFG_SetParam(CFG_PARAM_MULTI_BW1, 100000);
-    CFG_SetParam(CFG_PARAM_Volt_max_Display, 4000);
-    CFG_SetParam(CFG_PARAM_Volt_min_Display, 3100);
-    CFG_SetParam(CFG_PARAM_Daylight,0);              // Daylight (1)  Inhouse  (0)
-    CFG_SetParam(CFG_PARAM_Fatlines,0);              // Fat Lines (1) Thin Lines (0)
-    CFG_SetParam(CFG_PARAM_BeepOn,1);                // Beep on (1) Beep off (0)
-    CFG_SetParam(CFG_PARAM_Date,20180919);           // Date yyyymmdd
-    CFG_SetParam(CFG_PARAM_Time,1930);
-}
-*/
 
 
 //CFG module initialization
@@ -549,6 +538,7 @@ void CFG_Init(void)
     CFG_SetParam(CFG_PARAM_LOGLOG, 1);
     CFG_SetParam(CFG_PARAM_CURSOR, 1);
     CFG_SetParam(CFG_PARAM_ATTENUATOR, 40);
+    CFG_SetParam(CFG_PARAM_ShowLogoTime, 10);
     //Load parameters from file to the SD card
     FRESULT res;
     FIL fo = { 0 };
