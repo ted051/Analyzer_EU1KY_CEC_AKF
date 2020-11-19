@@ -294,9 +294,13 @@ float complex OSL_ParabolicInterpolation(float complex y1, float complex y2, flo
                                float x1, float x2, float x3,       //frequencies of respective y values
                                float x) //Frequency between x2 and x3 where we want to interpolate result
 {
-    float complex a = ((y3-y2)/(x3-x2)-(y2-y1)/(x2-x1))/(x3-x1);
-    float complex b = ((y3-y2)/(x3-x2)*(x2-x1)+(y2-y1)/(x2-x1)*(x3-x2))/(x3-x1);
-    float complex res = a * powf(x - x2, 2.) + b * (x - x2) + y2;
+    float complex z1 = (y3-y2)/(x3-x2);
+    float complex z2 = (y2-y1)/(x2-x1);
+    //float complex a = ((y3-y2)/(x3-x2)-(y2-y1)/(x2-x1))/(x3-x1);// a may be zero (if all points are collinear)
+    float complex a = (z1 - z2)/(x3-x1);// a may be zero (if all points are collinear)
+    float complex b = (z1*(x2-x1)+z2*(x3-x2))/(x3-x1);
+   // float complex res = a * (x - x2) * (x - x2) + b * (x - x2) + y2;// avoid powf function
+    float complex res =(x - x2) *(a * (x - x2) + b ) + y2;// avoid the powf function
     return res;
 }
 
@@ -582,19 +586,20 @@ static float complex OSL_CorrectG(uint32_t fhz, float complex gMeasured)
     //i = (fhz - BAND_FMIN) / OSL_SCAN_STEP; //Nearest lower OSL file record index
     i = GetIndexForFreq(fhz);
     fr1=OSL_GetCalFreqByIdx(i);
-    if((fr1==fhz)&&(i!=MID_IDX))    {
+    if((fr1==fhz)&&(i!=MID_IDX)){
+    //if(fr1==fhz)    {
         k=1; // No interpolation necessary.
         oslData = osl_data[i];
     }
     else
     {
-        if (i==0){// first interval or middle
+        if (i==0){// first interval
                 //Corner cases. Linearly interpolate two OSL factors for two nearby records
                 //(there is no third point for this interval)
             prop = (float)(fhz - fr1) / OSL_SMALL_SCAN_STEP; //proportion
             k=2;
         }
-        else if(i==MID_IDX){
+        else if((i==MID_IDX)||(i==MID_IDX+1)){// discontinuity: linear interpolation
             i++;
             k=2;
             prop=  (float)(fhz - fr1) / OSL_SCAN_STEP-1.0f;
@@ -604,17 +609,17 @@ static float complex OSL_CorrectG(uint32_t fhz, float complex gMeasured)
             prop=  (float)(fhz - fr1) / OSL_SCAN_STEP;
             k=2;
         }
-        if(k==2){
+        if(k==2){// linear interpolation
             oslData.e00 = (osl_data[i+1].e00 - osl_data[i+0].e00) * prop + osl_data[i+0].e00;
             oslData.e11 = (osl_data[i+1].e11 - osl_data[i+0].e11) * prop + osl_data[i+0].e11;
             oslData.de = (osl_data[i+1].de - osl_data[i+0].de) * prop + osl_data[i+0].de;
         }
     }
     if (k==0)
-    {//We have three OSL points near fhz, thus using parabolic interpolation
+    {//We have three OSL points near fhz, thusly using parabolic interpolation
         float f1, f2, f3;
         f1=(float) OSL_GetCalFreqByIdx(i-1);
-        f2=(float)fr1;
+        f2=(float)fr1; // =f[i]                  // f2 <= fhz < f3
         f3=(float) OSL_GetCalFreqByIdx(i+1);
 
         oslData.e00 = OSL_ParabolicInterpolation(osl_data[i-1].e00, osl_data[i].e00, osl_data[i+1].e00,

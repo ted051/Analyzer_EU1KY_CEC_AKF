@@ -50,5 +50,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-*.depend
-*.elay
+F7Discovery.depend
+F7Discovery.elay

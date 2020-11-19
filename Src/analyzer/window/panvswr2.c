@@ -255,6 +255,7 @@ void QuMeasure(void);
 void QuCalibrate(void);
 void DrawX_Scale(float maxRXi, float minRXi);
 int QuStep, sCalib;
+static void ScanRXFast(void);
 
 #define M_BGCOLOR LCD_RGB(0,0,64)    //Menu item background color
 #define M_FGCOLOR LCD_RGB(255,255,0) //Menu item foreground color
@@ -2526,6 +2527,7 @@ void ZoomMinus(void)
     if(span>0)
     {
         span--;
+        ScanRXFast();
         redrawRequired = 1;
     }
 }
@@ -2534,6 +2536,7 @@ void ZoomPlus(void)
     if(span<BS1000M)// DL8MBY
     {
         span++;
+        ScanRXFast();
         redrawRequired = 1;
     }
 }

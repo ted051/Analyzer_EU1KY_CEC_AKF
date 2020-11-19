@@ -16,14 +16,14 @@
 			<Cursor1 position="10322" topLine="354" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\config\config.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\config\config.c" open="1" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="6139" topLine="126" />
+			<Cursor1 position="20875" topLine="522" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\config\config.h" open="1" top="0" tabpos="22" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\config\config.h" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="910" topLine="8" />
+			<Cursor1 position="10122" topLine="164" />
 		</Cursor>
 	</File>
 	<File name="Src\analyzer\digital\bintohextable.h" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -46,7 +46,7 @@
 			<Cursor1 position="277" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\dsp\dsp.c" open="1" top="0" tabpos="20" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\dsp\dsp.c" open="1" top="0" tabpos="22" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="15317" topLine="535" />
 		</Cursor>
@@ -76,7 +76,7 @@
 			<Cursor1 position="2408" topLine="45" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\gen\gen.h" open="1" top="0" tabpos="21" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\gen\gen.h" open="1" top="0" tabpos="23" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="287" topLine="0" />
 		</Cursor>
@@ -96,7 +96,7 @@
 			<Cursor1 position="0" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\gen\si5351.c" open="1" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\gen\si5351.c" open="1" top="0" tabpos="20" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="4085" topLine="79" />
 		</Cursor>
@@ -106,7 +106,7 @@
 			<Cursor1 position="8958" topLine="216" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\gen\si5351_hs.c" open="1" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\gen\si5351_hs.c" open="1" top="0" tabpos="19" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="1709" topLine="27" />
 		</Cursor>
@@ -141,9 +141,9 @@
 			<Cursor1 position="232" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\lcd\bitmaps\bitmaps.h" open="0" top="0" tabpos="38" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\lcd\bitmaps\bitmaps.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="281" topLine="1" />
+			<Cursor1 position="371" topLine="1" />
 		</Cursor>
 	</File>
 	<File name="Src\analyzer\lcd\bitmaps\imgbuttons.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -151,9 +151,9 @@
 			<Cursor1 position="328" topLine="2482" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\lcd\bitmaps\mainimg.h" open="0" top="0" tabpos="39" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\lcd\bitmaps\mainimg.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="789919" topLine="1425" />
+			<Cursor1 position="2662" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="Src\analyzer\lcd\consbig.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -161,7 +161,7 @@
 			<Cursor1 position="32852" topLine="516" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\lcd\font.c" open="1" top="0" tabpos="18" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\lcd\font.c" open="1" top="0" tabpos="21" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="5794" topLine="189" />
 		</Cursor>
@@ -236,19 +236,19 @@
 			<Cursor1 position="1437" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\lcd\textbox.c" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\lcd\textbox.c" open="1" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="6784" topLine="215" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\lcd\textbox.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\lcd\textbox.h" open="1" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="687" topLine="2" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\lcd\touch.c" open="1" top="0" tabpos="17" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+	<File name="Src\analyzer\lcd\touch.c" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="623" topLine="9" />
+			<Cursor1 position="1099" topLine="18" />
 		</Cursor>
 	</File>
 	<File name="Src\analyzer\lcd\touch.h" open="0" top="0" tabpos="41" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -261,12 +261,12 @@
 			<Cursor1 position="3850" topLine="130" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\osl\oslfile.c" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\osl\oslfile.c" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="23337" topLine="0" />
+			<Cursor1 position="16699" topLine="475" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\osl\oslfile.h" open="1" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\osl\oslfile.h" open="1" top="0" tabpos="18" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="1305" topLine="0" />
 		</Cursor>
@@ -331,7 +331,7 @@
 			<Cursor1 position="90" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\generator.c" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\window\generator.c" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="5159" topLine="146" />
 		</Cursor>
@@ -346,7 +346,7 @@
 			<Cursor1 position="1797" topLine="28" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\keyboard.c" open="1" top="0" tabpos="23" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\window\keyboard.c" open="1" top="0" tabpos="24" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="770" topLine="18" />
 		</Cursor>
@@ -356,9 +356,9 @@
 			<Cursor1 position="625" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\mainwnd.c" open="1" top="0" tabpos="19" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\window\mainwnd.c" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="42175" topLine="1211" />
+			<Cursor1 position="2201" topLine="75" />
 		</Cursor>
 	</File>
 	<File name="Src\analyzer\window\mainwnd.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -381,7 +381,7 @@
 			<Cursor1 position="301" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\num_keypad.c" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\window\num_keypad.c" open="1" top="0" tabpos="17" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="8991" topLine="181" />
 		</Cursor>
@@ -391,19 +391,19 @@
 			<Cursor1 position="310" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\oslcal.c" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\window\oslcal.c" open="1" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="9960" topLine="272" />
+			<Cursor1 position="9960" topLine="171" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\oslcal.h" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\window\oslcal.h" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="225" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\panfreq.c" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\window\panfreq.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="17519" topLine="335" />
+			<Cursor1 position="18307" topLine="341" />
 		</Cursor>
 	</File>
 	<File name="Src\analyzer\window\panfreq.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -411,9 +411,9 @@
 			<Cursor1 position="244" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\panvswr2.c" open="1" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+	<File name="Src\analyzer\window\panvswr2.c" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="96607" topLine="3080" />
+			<Cursor1 position="29308" topLine="1406" />
 		</Cursor>
 	</File>
 	<File name="Src\analyzer\window\panvswr2.h" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -426,9 +426,9 @@
 			<Cursor1 position="30518" topLine="934" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\screenshot.c" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\window\screenshot.c" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="4100" topLine="146" />
+			<Cursor1 position="2415" topLine="123" />
 		</Cursor>
 	</File>
 	<File name="Src\analyzer\window\screenshot.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -446,12 +446,12 @@
 			<Cursor1 position="6568" topLine="116" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\trackspectr.c" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\analyzer\window\trackspectr.c" open="1" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="3546" topLine="1027" />
 		</Cursor>
 	</File>
-	<File name="Src\analyzer\window\weaksignal.c" open="1" top="0" tabpos="24" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+	<File name="Src\analyzer\window\weaksignal.c" open="1" top="0" tabpos="25" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="35006" topLine="907" />
 		</Cursor>
@@ -496,12 +496,12 @@
 			<Cursor1 position="10153" topLine="195" />
 		</Cursor>
 	</File>
-	<File name="Src\BSP\STM32746G-Discovery\stm32746g_discovery_lcd.c" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\BSP\STM32746G-Discovery\stm32746g_discovery_lcd.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="5976" topLine="131" />
 		</Cursor>
 	</File>
-	<File name="Src\BSP\STM32746G-Discovery\stm32746g_discovery_lcd.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="Src\BSP\STM32746G-Discovery\stm32746g_discovery_lcd.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="7689" topLine="52" />
 		</Cursor>
@@ -576,9 +576,9 @@
 			<Cursor1 position="2632" topLine="21" />
 		</Cursor>
 	</File>
-	<File name="Src\main.c" open="1" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+	<File name="Src\main.c" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1345" topLine="21" />
+			<Cursor1 position="2397" topLine="99" />
 		</Cursor>
 	</File>
 	<File name="Src\STM32F7xx_HAL_Driver\Inc\stm32f7xx_hal.h" open="0" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
