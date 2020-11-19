@@ -427,11 +427,11 @@ static const CFG_CHANGEABLE_PARAM_DESCR_t cfg_ch_descr_table[] =
     },
     {
         .id = CFG_PARAM_ATTENUATOR,           // added by DH1AKF
-        .idstring = "Attenuator for S21",     // 03.11.2020
+        .idstring = "Attenuator for S21",     // 03.11.2020 / 19.11.2020
         .type = CFG_PARAM_T_U32,
         .nvalues = 6,
-        .values = CFG_IARR(10,20,30,40,50,60),
-        .strvalues = CFG_SARR("10 dB", "20 dB", "30 dB", "40 dB", "50 dB", "60 dB"),
+        .values = CFG_IARR(10,16,20,30,40,50,60),
+        .strvalues = CFG_SARR("10 dB","16 dB","20 dB","30 dB","40 dB","50 dB","60 dB"),
         .dstring = "Calibrate S21 with additional Attenuator",
     },
     {
