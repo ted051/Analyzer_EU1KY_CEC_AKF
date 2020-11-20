@@ -438,9 +438,9 @@ static const CFG_CHANGEABLE_PARAM_DESCR_t cfg_ch_descr_table[] =
         .id = CFG_PARAM_ShowLogoTime,           // added by DH1AKF
         .idstring = "Show Logo Time",     // 16.11.2020
         .type = CFG_PARAM_T_U32,
-        .nvalues = 6,
-        .values = CFG_IARR(5,10,20,30,60,3600),
-        .strvalues = CFG_SARR("5 s", "10 s", "20 s", "30 s", "1 min", "1 hour"),
+        .nvalues = 7,
+        .values = CFG_IARR(0,5,10,20,30,60,3600),
+        .strvalues = CFG_SARR("0 s", "5 s", "10 s", "20 s", "30 s", "1 min", "1 hour"),
         .dstring = "Choose the time for logo view",
     },
 };

@@ -688,7 +688,7 @@ static void DrawCursorText()
     if (Q > 2000.f)
         Q = 2000.f;
     LCD_FillRect(LCD_MakePoint(20, Y0 + WHEIGHT + 16),LCD_MakePoint(409 , Y0 + WHEIGHT + 30),BackGrColor);
-    FONT_Print(FONT_FRAN, TextColor, BackGrColor, 20, Y0 + WHEIGHT + 16, "F: %.2f MHz  Z: %.1f%+.1fj   SWR: %.1f   MCL: %.2f dB   Q: %.1f       ",
+    FONT_Print(FONT_FRAN, TextColor, BackGrColor, 20, Y0 + WHEIGHT + 16, "F: %.2f MHz    Z: %.1f%+.1fj     SWR: %.1f    MCL: %.2f dB    Q: %.1f  ",
                fcur/1000,
                crealf(rx),
                cimagf(rx),
@@ -713,7 +713,7 @@ static void DrawCursorTextWithS11()
     if (fcur * 1000.f > (float)(CFG_GetParam(CFG_PARAM_BAND_FMAX) + 1))
         fcur = 0.f;
     LCD_FillRect(LCD_MakePoint(X0-30, Y0 + WHEIGHT + 16),LCD_MakePoint(409 , Y0 + WHEIGHT + 30),BackGrColor);
-    FONT_Print(FONT_FRAN, TextColor, BackGrColor, X0 -30, Y0 + WHEIGHT + 16, "F: %.2f MHZ  Z: %.1f%+.1fj   SWR: %.1f   S11: %.2f dB          ",
+    FONT_Print(FONT_FRAN, TextColor, BackGrColor, X0 -30, Y0 + WHEIGHT + 16, "F: %.2f MHZ    Z: %.1f%+.1fj     SWR: %.1f     S11: %.2f dB  ",
                fcur/1000,
                crealf(rx),
                cimagf(rx),

@@ -218,9 +218,13 @@ void OSL_CorrectErr(uint32_t fhz, float *magdif, float *phdif)
     }
     if(idx >= MID_IDX)
         factor=(float)(fhz-OSL_FREQUENCY_BORDER)/OSL_SCAN_STEP-(idx-MID_IDX);
+        //factor=(float)(fhz-OSL_FREQUENCY_BORDER)/OSL_SCAN_STEP;
     else
         factor=(float)(fhz-CFG_GetParam(CFG_PARAM_BAND_FMIN)/OSL_SMALL_SCAN_STEP) -idx;
-    if((0<=factor)&&(factor <=1.)){
+        //factor=(float)(fhz-CFG_GetParam(CFG_PARAM_BAND_FMIN)/OSL_SMALL_SCAN_STEP);
+
+   // factor -= trunc(factor);
+    if((-1.f<=factor)&&(factor <=1.f)){
 
         *magdif *= (v0 + diff *factor);
 
@@ -587,7 +591,6 @@ static float complex OSL_CorrectG(uint32_t fhz, float complex gMeasured)
     i = GetIndexForFreq(fhz);
     fr1=OSL_GetCalFreqByIdx(i);
     if((fr1==fhz)&&(i!=MID_IDX)){
-    //if(fr1==fhz)    {
         k=1; // No interpolation necessary.
         oslData = osl_data[i];
     }
@@ -599,20 +602,25 @@ static float complex OSL_CorrectG(uint32_t fhz, float complex gMeasured)
             prop = (float)(fhz - fr1) / OSL_SMALL_SCAN_STEP; //proportion
             k=2;
         }
-        else if((i==MID_IDX)||(i==MID_IDX+1)){// discontinuity: linear interpolation
+        else if(i==MID_IDX){// discontinuity: linear interpolation
+            i+=2;
+            k=2;
+            prop=  (float)(fhz - fr1) / OSL_SCAN_STEP - 2.0f;
+
+        }
+        else if(i==MID_IDX+1){// discontinuity: linear interpolation
             i++;
             k=2;
-            prop=  (float)(fhz - fr1) / OSL_SCAN_STEP-1.0f;
-
+            prop=  (float)(fhz - fr1) / OSL_SCAN_STEP - 1.0f;
         }
         else if(fr1>CFG_GetParam(CFG_PARAM_BAND_FMAX)-OSL_SCAN_STEP){//Last interval
             prop=  (float)(fhz - fr1) / OSL_SCAN_STEP;
             k=2;
         }
         if(k==2){// linear interpolation
-            oslData.e00 = (osl_data[i+1].e00 - osl_data[i+0].e00) * prop + osl_data[i+0].e00;
-            oslData.e11 = (osl_data[i+1].e11 - osl_data[i+0].e11) * prop + osl_data[i+0].e11;
-            oslData.de = (osl_data[i+1].de - osl_data[i+0].de) * prop + osl_data[i+0].de;
+            oslData.e00 = (osl_data[i+1].e00 - osl_data[i].e00) * prop + osl_data[i].e00;
+            oslData.e11 = (osl_data[i+1].e11 - osl_data[i].e11) * prop + osl_data[i].e11;
+            oslData.de = (osl_data[i+1].de - osl_data[i].de) * prop + osl_data[i].de;
         }
     }
     if (k==0)

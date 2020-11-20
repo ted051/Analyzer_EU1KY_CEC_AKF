@@ -124,11 +124,10 @@ int main(void)
         LCD_DrawBitmap(LCD_MakePoint(90, 24), logo_bmp, logo_bmp_size);// show original logo
 #endif
  int WaitTime= 10 * CFG_GetParam(CFG_PARAM_ShowLogoTime);// to show logo n seconds or until touch
-    do {
+    while (--WaitTime >=0) {// 0 causes immediate break
         Sleep(100);
         if (TOUCH_IsPressed()) break;
-    } while (--WaitTime >=0);
-
+    }
 
     //TODO : Remove comment before Release / by KD8CEC
     //Sleep (3000);
