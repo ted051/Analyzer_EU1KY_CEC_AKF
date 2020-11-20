@@ -602,6 +602,12 @@ static float complex OSL_CorrectG(uint32_t fhz, float complex gMeasured)
             prop = (float)(fhz - fr1) / OSL_SMALL_SCAN_STEP; //proportion
             k=2;
         }
+        else if(i==MID_IDX-1){// discontinuity: linear interpolation
+
+            k=2;
+            prop=  (float)(fhz - fr1) / OSL_SMALL_SCAN_STEP;
+
+        }
         else if(i==MID_IDX){// discontinuity: linear interpolation
             i+=2;
             k=2;
