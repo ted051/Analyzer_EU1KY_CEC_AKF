@@ -32,6 +32,7 @@ Improvements (DH1AKF) against EU1KY's original software:
 - RF generator with (keyed) AM and FM
 - Measurement of Quartz parameters
 - Frequency sweep to find unknown pulsations ("Find Frequency", spectrum with power measurements)
+
 More enhancements were programmed by KD8CEC:
 - L/C measurement
 - Measurement of |S21| with a separate oscillator output connection
