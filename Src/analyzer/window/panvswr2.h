@@ -41,5 +41,6 @@ static float freqMHzf;
 void SWR_SetFrequency(void);
 int IsFinHamBands(uint32_t f_kHz);
 void WK_InvertPixel(uint16_t x, uint16_t y);
+void Beep(int duration);
 
 #endif

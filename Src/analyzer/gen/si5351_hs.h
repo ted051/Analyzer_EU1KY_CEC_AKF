@@ -95,7 +95,7 @@ void HS_AllClockUp();
 void HS_SetClockEnabled(uint8_t clkNum, uint8_t isEnabled, uint8_t isApply);
 void HS_SetPower(uint8_t clkNum, uint8_t txPower, uint8_t isApply);
 void HS_SetPLL(uint8_t clkNum, uint8_t usePLLIndex, uint8_t isApply);	///don't use, use HS_Bind...
-void HS_SetPower(uint8_t clkNum, uint8_t txPower, uint8_t isApply);
+//void HS_SetPower(uint8_t clkNum, uint8_t txPower, uint8_t isApply);
 //-------------------------------------------------
 //PLL Configuration (PLLA, PLLB)
 void HS_CalcPLLParam(unsigned long cPartValue,unsigned long targetFrequency, unsigned long *rst_P1, unsigned long *rst_P2, unsigned long *rst_P3);

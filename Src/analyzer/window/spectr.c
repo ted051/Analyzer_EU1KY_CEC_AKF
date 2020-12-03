@@ -63,7 +63,7 @@ static uint32_t f1;// kHz
 static unsigned long actFreq;
 static uint32_t  power00;
 static float SumVal;
-
+float value1, value2, value3;
 
 static void Calc_fft_audiobuf(int ch)
 {
@@ -88,6 +88,46 @@ static void Calc_fft_audiobuf(int ch)
         rfft_mags[i] = cabsf(binf) / (NSAMPLES/2);
     }
 }
+
+static void Calc_Power_fft_audiobuf()// calculate u * i ->power
+{
+    //two channels
+    int i;
+    arm_rfft_fast_instance_f32 S;
+
+    int16_t* pBuf = &audioBuf[NDUMMY + 0];
+    for(i = 0; i < NSAMPLES; i++)
+    {
+        rfft_input[i] = (float)*pBuf* windowfunc[i];// Blackman window
+        pBuf += 2;
+    }
+
+    arm_rfft_fast_init_f32(&S, NSAMPLES);
+    arm_rfft_fast_f32(&S, rfft_input, rfft_output, 0);
+
+    for (i = 0; i < NSAMPLES/2; i++)
+    {
+        float complex binf = prfft[i];
+        rfft_mags[i] = cabsf(binf) / (NSAMPLES/2);
+    }
+
+    pBuf = &audioBuf[NDUMMY + 1];
+    for(i = 0; i < NSAMPLES; i++)
+    {
+        rfft_input[i] = (float)*pBuf * windowfunc[i];// Blackman window
+        pBuf += 2;
+    }
+
+    arm_rfft_fast_init_f32(&S, NSAMPLES);
+    arm_rfft_fast_f32(&S, rfft_input, rfft_output, 0);
+
+    for (i = 0; i < NSAMPLES/2; i++)
+    {
+        float complex binf1 = prfft[i];
+        rfft_mags[i] = cabsf(binf1) / (NSAMPLES/2);
+    }
+}
+
 
 static float Maxmag, Average;
 
@@ -122,6 +162,44 @@ float Val;
     else return 0;// no peak in the bin's
 }
 
+float  ParabolicInterpolation(float  y1, float  y2, float  y3, //values for frequencies x1, x2, x3
+                               float x1, float x2, float x3,   //y values of  of respective frequencies
+                               float x) //Frequency between x2 and x3 where we want to interpolate result
+{
+    float  z1 = (y3-y2)/(x3-x2);
+    float  z2 = (y2-y1)/(x2-x1);
+    float  a = (z1 - z2)/(x3-x1);// a may be zero (if all points are collinear)
+    float  b = (z1*(x2-x1)+z2*(x3-x2))/(x3-x1);
+    float  res =(x - x2) *(a * (x - x2) + b ) + y2;// avoid the powf function
+    return res;
+}
+
+
+// List 10*log10(u) ->  attenuation in dB
+float fV[14] = {49.f,42.52f,39.6f,37.56f,34.61f,32.55f,27.61f,22.63f,17.8f,14.76f,13.26f,12.7f,7.3f, 5.f};// values (raw) for 0 dB .. -100 dB
+float dB[14] = {   5,     0,   -6,   -10,   -16,   -20,   -30,   -40,  -50,   -60,   -70,  -80, -90,-100};// two more than necessary, because of the upper and lower end
+
+float Calc_dB1(float z){
+int i;
+    for(i=1; i<13; i++){
+        if(z>= fV[i]) break;
+    }
+    return ParabolicInterpolation( dB[i-1], dB[i], dB[i+1],fV[i-1], fV[i], fV[i+1], z);
+}
+
+float Calc_dB (float z){
+
+    return 2.1252f * z -91.8f;
+}
+
+float DSP_GetValue(uint32_t freq, int iterations){
+float val;
+    val=DSP_MeasureTrack(freq, 0, 0, 2);//TX Via S2
+    return val;
+       /* if (val < 0.0000001f)// was 0.3
+            val= 0.0000001f;
+        return val;*/
+}
 
 static int counter;
 //static char string1[40];

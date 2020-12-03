@@ -18,7 +18,9 @@
 #include "measurement.h"
 #include "num_keypad.h"
 #include "panfreq.h"
+#include "panvswr2.h"
 #include "generator.h"
+#include "si5351.h"
 #include "si5351_hs.h"
 #include "FreqCounter.h"
 
@@ -38,6 +40,8 @@ static uint16_t Old_TimeFlag;
 static bool mod_AM, mod_FM ;
 static uint32_t fxG;
 void Sleep(uint32_t ms);
+
+uint32_t S2powerDBm[4]={5,10,12,14}; //rounded output values at 2 MHz
 
 static void ShowF()
 {
@@ -85,7 +89,7 @@ void FDecrG(uint32_t step)
 }
 
 
-static void GENERATOR_SwitchWindow(void)
+static void GENERATOR_Exit(void)
 {
     rqExit = 1;
 }
@@ -169,8 +173,8 @@ int k=0;
         mod_AM=true;
         GEN_SetMeasurementFreq(fx);
         GEN_SetClk2Freq(fx);
-        HS_SetPower(2, 3, 1);// CLK2: 8 mA
-        HS_SetPower(0, 3, 1);// CLK0: 8 mA
+        HS_SetPower(2, CLK2_drive, 1);// CLK2: 8 mA .. 2 mA
+        HS_SetPower(0, CLK2_drive, 1);// CLK0: 8 mA .. 2 mA
         LCD_Rectangle((LCDPoint){320,234},(LCDPoint){379,271}, 0xffff0000);//red
         LCD_Rectangle((LCDPoint){319,233},(LCDPoint){378,270}, 0xffff0000);//red
         for(;;){
@@ -212,8 +216,8 @@ int k=0;
         mod_FM=true;
         LCD_Rectangle((LCDPoint){380,234},(LCDPoint){440,271}, 0xffff0000);//red
         LCD_Rectangle((LCDPoint){379,233},(LCDPoint){439,270}, 0xffff0000);//red
-        HS_SetPower(2, 3, 1);// CLK2: 8 mA
-        HS_SetPower(0, 3, 1);// CLK0: 8 mA
+        HS_SetPower(2, CLK2_drive, 1);// CLK2: 8 mA .. 2 mA
+        HS_SetPower(0, CLK2_drive, 1);// CLK0: 8 mA .. 2 mA
         for(;;){
             Sleep(2);
             k++;
@@ -240,12 +244,22 @@ int k=0;
 
 
 }
+
+static void GENERATOR_Power(void){
+   CLK2_drive++;
+   if( CLK2_drive>3) CLK2_drive=0;
+   Sleep(1);
+   Beep(1);
+   redrawWindow=1;
+   Sleep(100);
+}
+
 static const struct HitRect GENERATOR_hitArr[] =
 {
     //        x0,  y0, width, height, callback
-    HITRECT(   0, 233,  80, 38, GENERATOR_SwitchWindow),//200
-    HITRECT(  85, 233, 135, 38, GENERATOR_SetFreq),
-   // HITRECT( 220, 233, 100, 38, GENERATOR_ChgColrs),
+    HITRECT(   0, 233,  65, 38, GENERATOR_Exit),//200
+    HITRECT(  70, 233, 125, 38, GENERATOR_SetFreq),
+    HITRECT( 200, 233, 80, 38, GENERATOR_Power),
     HITRECT( 320, 233, 59, 38, GENERATOR_AM),
     HITRECT( 380, 233, 59, 38, GENERATOR_FM),
     HITRECT( 290,   1,  90, 35, GENERATOR_FDecr_500k),
@@ -296,6 +310,7 @@ uint32_t activeLayer, f0;
 int k, SignalGood;
 uint32_t speedcnt = 0;
 
+    CLK2_drive=3;// 8 mA
     mod_AM = false;
     mod_FM = false;
     while(TOUCH_IsPressed());
@@ -320,7 +335,8 @@ GENERATOR_REDRAW:
     ShowIncDec1();
     FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 0, 36, "Generator mode");// WK
     FONT_Write(FONT_FRANBIG, CurvColor, BackGrColor, 2, 235, " Exit ");
-    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 85, 235, "Frequency");
+    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 205, 235, "Power");
+    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 75, 235, "Frequency");
     FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 332, 235, "AM");
     FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 392, 235, "FM");
     ShowF();
@@ -337,13 +353,13 @@ GENERATOR_REDRAW:
     rqExit = 0;
     fChanged = 1;// WK
     redrawWindow = 0;
-    HS_SetPower(2, 3, 1);// CLK2 8mA
     while(1)
     {
         if(TOUCH_Poll(&pt)){
             if(HitTest(GENERATOR_hitArr, pt.x, pt.y)==1){
                 if (rqExit)
                 {
+                    CLK2_drive=3;// 8 mA
                     GEN_SetMeasurementFreq(0);
                     GEN_SetClk2Freq(0);
                     return; // Back to main menu
@@ -407,6 +423,7 @@ GENERATOR_REDRAW:
             rx = DSP_MeasuredZ();
             FONT_ClearHalfLine(FONT_FRAN, BackGrColor, 180);
             FONT_Printf(0, 180, "With OSL R: %.1f X: %.1f", crealf(rx), cimagf(rx));
+            FONT_Printf(0,200, "Output Power S2 (approx.:) %2d dBm" , S2powerDBm[CLK2_drive]);
         }
     }
 }

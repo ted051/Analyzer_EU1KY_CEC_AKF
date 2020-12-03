@@ -9,46 +9,11 @@
 #include "LCD.h"
 #include "gen.h"
 #include "dsp.h"
+#include "si5351.h"
 
 #define MAX_OSLFILES 16
 #define OSL_BASE_R0 50.0f // Note: all OSL calibration coefficients are calculated using G based on 50 Ohms, not on CFG_PARAM_R0 !!!
 
-extern void Sleep(uint32_t);
-extern void progress_cb(uint32_t new_percent);
-
-static float _nonz(float f) __attribute__((unused));
-static float complex _cnonz(float complex f) __attribute__((unused));
-
-typedef float complex COMPLEX;
-
-//OSL calibration data structure
-typedef union
-{
-    struct
-    {
-        float complex e00;    //e00 correction coefficient
-        float complex e11;    //e11 correction coefficient
-        float complex de;     //delta-e correction coefficient
-    };
-    struct
-    {
-        float complex gshort; //measured gamma for short load
-        float complex gload;  //measured gamma for 50 Ohm load
-        float complex gopen;  //measured gamma for open load
-    };
-} S_OSLDATA;
-
-//Hardware error correction structure
-
-typedef enum
-{
-    OSL_FILE_EMPTY =  0x00,
-    OSL_FILE_VALID =  0x01,
-    OSL_FILE_SCANNED_SHORT = 0x02,
-    OSL_FILE_SCANNED_LOAD = 0x04,
-    OSL_FILE_SCANNED_OPEN = 0x08,
-    OSL_FILE_SCANNED_ALL = OSL_FILE_SCANNED_SHORT | OSL_FILE_SCANNED_LOAD | OSL_FILE_SCANNED_OPEN
-} OSL_FILE_STATUS;
 
 #define OSL_SMALL_SCAN_STEP     (100000)
 #define OSL_SCAN_STEP           (300000)
@@ -62,6 +27,30 @@ typedef enum
 // used entries:
 #define OSL_NUM_VALID_ENTRIES ((CFG_GetParam(CFG_PARAM_BAND_FMAX) - OSL_FREQUENCY_BORDER)/OSL_SCAN_STEP +(OSL_FREQUENCY_BORDER-CFG_GetParam(CFG_PARAM_BAND_FMIN)) / OSL_SMALL_SCAN_STEP + 1)
 #define MID_IDX ((OSL_FREQUENCY_BORDER-CFG_GetParam(CFG_PARAM_BAND_FMIN))/OSL_SMALL_SCAN_STEP)
+
+
+extern void Sleep(uint32_t);
+extern void progress_cb(uint32_t new_percent);
+
+static float _nonz(float f) __attribute__((unused));
+static float complex _cnonz(float complex f) __attribute__((unused));
+
+typedef float complex COMPLEX;
+
+
+static S_OSLDATA osl_data[OSL_ENTRIES];
+
+//Hardware error correction structure
+
+typedef enum
+{
+    OSL_FILE_EMPTY =  0x00,
+    OSL_FILE_VALID =  0x01,
+    OSL_FILE_SCANNED_SHORT = 0x02,
+    OSL_FILE_SCANNED_LOAD = 0x04,
+    OSL_FILE_SCANNED_OPEN = 0x08,
+    OSL_FILE_SCANNED_ALL = OSL_FILE_SCANNED_SHORT | OSL_FILE_SCANNED_LOAD | OSL_FILE_SCANNED_OPEN
+} OSL_FILE_STATUS;
 
 #if (1 == OSL_TABLES_IN_SDRAM)
 #define MEMATTR_OSL __attribute__((section (".user_sdram")))
@@ -88,6 +77,8 @@ static S_OSLDATA osl_data[OSL_ENTRIES] = { 0 };
 
 static float WORK_BUFF[OSL_ENTRIES * sizeof(OSL_ERRCORR) / sizeof(float)] = {0};
 
+float* WORK_Ptr=&WORK_BUFF[0];
+
 int WorkBuffMode = 0;   //0: Not use, 1:OSL, 2:VNA, 3:LC, 4...
 static OSL_ERRCORR *osl_txCorr = (OSL_ERRCORR *)&WORK_BUFF[0];
 static S_OSLDATA *lc_osl_data = (S_OSLDATA *)&WORK_BUFF[0];
@@ -112,9 +103,9 @@ static const COMPLEX cmminus1 = -1.0f + 0.0fi;
 
 static int32_t OSL_LoadFromFile(void);
 
-static uint32_t OSL_GetCalFreqByIdx(int32_t idx)
+uint32_t OSL_GetCalFreqByIdx(int32_t idx)
 {
-    if (idx < 0 || idx >= OSL_NUM_VALID_ENTRIES)
+    if ((idx < 0) || (idx >= OSL_NUM_VALID_ENTRIES))
         return 0;
     if(idx<=MID_IDX)
         return CFG_GetParam(CFG_PARAM_BAND_FMIN) + idx * OSL_SMALL_SCAN_STEP;
@@ -690,7 +681,7 @@ float complex OSL_GtoMA(float complex G)
 //-----------------------------------------------------------
 int32_t OSL_IsTXCorrLoaded(void)
 {
-    return osl_tx_loaded && WorkBuffMode == 2;
+    return (osl_tx_loaded==1) && (WorkBuffMode == 2);
 }
 
 void OSL_LoadTXCorr(void)
@@ -703,15 +694,16 @@ void OSL_LoadTXCorr(void)
     WorkBuffMode = 0;
 
     osl_txCorr= (OSL_ERRCORR *)&WORK_BUFF[0];// DH1AKF
+    WORK_Ptr=&WORK_BUFF[0];
 
     sprintf(path, "%s/txcorr.osl", g_cfg_osldir);
     res = f_open(&fp, path, FA_READ | FA_OPEN_EXISTING);
     if (FR_OK != res)
         return;
     UINT br =  0;
-    res = f_read(&fp, osl_txCorr, sizeof(*osl_txCorr) * OSL_NUM_VALID_ENTRIES, &br);
+    res = f_read(&fp, osl_txCorr, sizeof(OSL_ERRCORR) * OSL_NUM_VALID_ENTRIES, &br);
     f_close(&fp);
-    if (FR_OK != res || (sizeof(*osl_txCorr) * OSL_NUM_VALID_ENTRIES != br))
+    if (FR_OK != res || (sizeof(OSL_ERRCORR) * OSL_NUM_VALID_ENTRIES != br))
         return;
     osl_tx_loaded = 1;
     WorkBuffMode = 2;
@@ -726,21 +718,24 @@ float trackCalValue;
     WorkBuffMode = 2;
     osl_txCorr=(OSL_ERRCORR*)&WORK_BUFF[0];
     S21progress_cb(0);
+
+    CLK2_drive = 0; // CLK2: 2mA => -4 dBm   ((8 mA => +5 dBm ))
+
     for (i = 0; i < OSL_NUM_VALID_ENTRIES; i++)
     {
         uint32_t freq = OSL_GetCalFreqByIdx(i);
 
-        //GEN_SetTXFreq(freq);    //TX Via S2
-        DSP_MeasureTrack(freq, 0, 0, 2);
-        trackCalValue = DSP_MeasureTrackCal();
+
+
+        trackCalValue = DSP_MeasureTrack(freq, 0, 0, 2);//TX Via S2
 
         if (trackCalValue < 0.0000001)// was 0.3
         {
             CRASH("No signal");
         }
 
-        osl_txCorr[i].mag0 = log10(_nonz(trackCalValue));
-        osl_txCorr[i].phase0 = 0;
+        osl_txCorr[i].val0 = trackCalValue;
+        osl_txCorr[i].valAtt = 0;
 
         if (S21progress_cb)
             S21progress_cb((i * 100) / OSL_NUM_VALID_ENTRIES);
@@ -755,17 +750,20 @@ uint32_t i;
 
     S21progress_cb(0);
 
+    CLK2_drive = 0; // CLK2: 2 mA => -4 dBm
+
     for (i = 0; i < OSL_NUM_VALID_ENTRIES; i++)
     {
         uint32_t freq = OSL_GetCalFreqByIdx(i);
 
-        DSP_MeasureTrack(freq, 0, 0, 2);
-
-        osl_txCorr[i].phase0 = log10(_nonz(DSP_MeasureTrackCal()));
+        osl_txCorr[i].valAtt = DSP_MeasureTrack(freq, 0, 0, 2);
 
         if (S21progress_cb)
             S21progress_cb((i * 100) / OSL_NUM_VALID_ENTRIES);
     }
+
+    CLK2_drive = 3; // CLK2: 8 mA => +5 dBm
+
     SaveS21CorrToFile();
 }
 
@@ -782,27 +780,12 @@ void SaveS21CorrToFile(void){
         CRASHF("Failed to open file %s for write: error %d", path, res);
 
     UINT bw;
-    res = f_write(&fp, osl_txCorr, sizeof(*osl_txCorr) * OSL_NUM_VALID_ENTRIES, &bw);
-    if (FR_OK != res || bw != sizeof(*osl_txCorr) * OSL_NUM_VALID_ENTRIES)
+    res = f_write(&fp, osl_txCorr, sizeof(OSL_ERRCORR) * OSL_NUM_VALID_ENTRIES, &bw);
+    if (FR_OK != res || bw != sizeof(OSL_ERRCORR) * OSL_NUM_VALID_ENTRIES)
         CRASHF("Failed to write file %s: error %d", path, res);
     f_close(&fp);
     osl_tx_loaded = 1;
     WorkBuffMode = 2;
-}
-
-#define WHEIGHT 190
-
-int OSL_Calc_dBPix(uint32_t fhz, float inp)
-{
-    if (!osl_tx_loaded)
-        return 0;
-    if (WorkBuffMode != 2)
-        return 0;
-int idx = GetIndexForFreq(fhz);
-float Corr0dB=-osl_txCorr[idx].mag0;     // Corr value 0 dB
-float CorrAtt=-osl_txCorr[idx].phase0;   // Corr value with attenuator
-float dB=(float)CFG_GetParam(CFG_PARAM_ATTENUATOR);
-return (WHEIGHT*dB/65.)*(inp-Corr0dB)/_nonz(CorrAtt-Corr0dB);
 }
 
 
@@ -1125,4 +1108,104 @@ float complex LC_OSL_CorrectZ(uint32_t fhz, float complex zMeasured)
     g = OSL_ZFromG(g, OSL_BASE_R0);
     return g;
 }
+
+
+S_OSLDATA oslDataMax, oslData1, oslData2, oslData3;
+int MaxIndex[4];
+float MaxDiff[4];
+
+void SmoothOSL(void){// find local singularities
+float d, d1,d2,d3;
+uint32_t f1;
+int i, k=0;
+
+    oslDataMax.e00=oslDataMax.e11=oslDataMax.de=0;
+
+    for (i = 0; i < OSL_NUM_VALID_ENTRIES; i++){
+
+        oslData1.e00 = fabs(osl_data[i+1].e00 - osl_data[i].e00);
+        oslData1.e11 = fabs(osl_data[i+1].e11 - osl_data[i].e11);
+        oslData1.de = fabs(osl_data[i+1].de - osl_data[i].de);
+        d1=oslData1.e00+oslData1.e11+oslData1.de;
+
+        oslData2.e00 = fabs(osl_data[i+2].e00 - osl_data[i+1].e00);
+        oslData2.e11 = fabs(osl_data[i+2].e11 - osl_data[i+1].e11);
+        oslData2.de = fabs(osl_data[i+2].de - osl_data[i+1].de);
+        d2=oslData2.e00+oslData2.e11+oslData2.de;
+
+        oslData3.e00 = fabs(osl_data[i+3].e00 - osl_data[i+2].e00);
+        oslData3.e11 = fabs(osl_data[i+3].e11 - osl_data[i+2].e11);
+        oslData3.de = fabs(osl_data[i+3].de - osl_data[i+2].de);
+        d3=oslData3.e00+oslData3.e11+oslData3.de;
+
+        if (d1>d2) {
+            if((d2>d3)||(d1>d3)) {//d1 is maximum
+                MaxIndex[0]=i;
+                MaxDiff[0]=d1;
+            }
+        }
+        else if(d2>d3) {// d2 is maximum
+                MaxIndex[0]=i+1;
+                MaxDiff[0]=d2;
+        }
+        else {// d3 is maximum
+                MaxIndex[0]=i+2;
+                MaxDiff[0]=d3;
+        }
+    }
+
+int breaker=0, r, pos=30;
+char buf[50];
+
+    for(r=1;r<4;r++){
+        for (i = 0; i < OSL_NUM_VALID_ENTRIES; i++){
+            for(k=0;k<4;k++)
+                if((i>=MaxIndex[k]-2)&&(i<=MaxIndex[k])) {
+                        breaker=1;
+                        break;
+                };
+            }
+            if(breaker==1){
+                breaker=0;
+                continue;
+            }
+
+            oslData1.e00 = fabs(osl_data[i+1].e00 - osl_data[i].e00);
+            oslData1.e11 = fabs(osl_data[i+1].e11 - osl_data[i].e11);
+            oslData1.de = fabs(osl_data[i+1].de - osl_data[i].de);
+            d1=oslData1.e00+oslData1.e11+oslData1.de;
+
+            oslData2.e00 = fabs(osl_data[i+2].e00 - osl_data[i+1].e00);
+            oslData2.e11 = fabs(osl_data[i+2].e11 - osl_data[i+1].e11);
+            oslData2.de = fabs(osl_data[i+2].de - osl_data[i+1].de);
+            d2=oslData2.e00+oslData2.e11+oslData2.de;
+
+            oslData3.e00 = fabs(osl_data[i+3].e00 - osl_data[i+2].e00);
+            oslData3.e11 = fabs(osl_data[i+3].e11 - osl_data[i+2].e11);
+            oslData3.de = fabs(osl_data[i+3].de - osl_data[i+2].de);
+            d3=oslData3.e00+oslData3.e11+oslData3.de;
+
+            d=oslDataMax.e00+oslDataMax.e11+oslDataMax.de;
+
+            if (d1>d2) {
+                if((d2>d3)||(d1>d3)) {//d1 is maximum
+                    MaxIndex[r]=i;
+                    MaxDiff[r]=d1;
+            }
+            else if(d2>d3) {// d2 is maximum
+                    MaxIndex[r]=i+1;
+                    MaxDiff[r]=d2;
+            }
+            else {// d3 is maximum
+                    MaxIndex[r]=i+2;
+                    MaxDiff[r]=d3;
+            }
+        }
+        f1=OSL_GetCalFreqByIdx(MaxIndex[r]);
+        sprintf(buf, " Problems %.2f kHz %diff %.3g", (float)f1/1000, MaxDiff[r]);
+        FONT_Write(FONT_FRAN, TextColor, BackGrColor, 0, pos, buf);//LCD_BLUE
+        pos+=32;
+    }
+}
+
 

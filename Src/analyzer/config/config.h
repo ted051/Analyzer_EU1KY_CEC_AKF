@@ -32,7 +32,7 @@
 //#define MAX_BAND_FREQ  450000000ul
 //#define MAX_BAND_FREQ  600000000ul
 //#define MAX_BAND_FREQ  890000000ul
-#define MAX_BAND_FREQ  1450000000ul
+#define MAX_BAND_FREQ  (unsigned long)1450000000ul
 
 #if (BAND_FMIN % 100000) != 0
     #error "Incorrect band limit settings"

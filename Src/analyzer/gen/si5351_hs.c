@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "si5351.h"
 #include "si5351_hs.h"
 
 #include "config.h"
@@ -53,7 +54,7 @@ extern void     CAMERA_IO_WriteBulk(uint8_t addr, uint8_t reg, uint8_t* values, 
 extern void Sleep(uint32_t);
 
 //=================================================
-//User Implenetion function
+//User Implemention function
 //You must create two I2C-related functions for your device.
 //The two below are examples of that.
 //-------------------------------------------------
@@ -161,14 +162,15 @@ void HS_SetClockEnabled(uint8_t clkNum, uint8_t isEnabled, uint8_t isApply)
 	}
 }
 
-void HS_SetPower(uint8_t clkNum, uint8_t txPower, uint8_t isApply)
+void HS_SetPower(uint8_t clkNum, uint8_t txPower, uint8_t isApply)// txPower in (0..3)
 {
 	reg_ClkControl[clkNum] &= ~(3);
 	reg_ClkControl[clkNum] |= (txPower);
 
 	if (isApply)
 	{
-		SI5351_HS_Write(16 + clkNum, reg_ClkControl[clkNum]);
+uint8_t status = si5351_read_device_reg(16 + clkNum)|(txPower);
+		SI5351_HS_Write(16 + clkNum, status);
 	}
 }
 

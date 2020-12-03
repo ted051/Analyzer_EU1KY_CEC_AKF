@@ -40,7 +40,7 @@ struct Si5351IntStatus dev_int_status;
 /******************************/
 static void si5351_set_freq(uint32_t, enum si5351_clock);
 static void si5351_clock_enable(enum si5351_clock clk, uint8_t enable);
-static uint8_t si5351_read_device_reg(uint8_t reg);
+uint8_t si5351_read_device_reg(uint8_t reg);
 static void set_multisynth_alt(uint32_t freq, enum si5351_clock clk);
 static uint8_t si5351_write_bulk(uint8_t, uint8_t, uint8_t *);
 static uint8_t si5351_write(uint8_t, uint8_t);
@@ -58,6 +58,8 @@ extern void     CAMERA_Delay(uint32_t delay);
 extern void     CAMERA_IO_WriteBulk(uint8_t addr, uint8_t reg, uint8_t* values, uint16_t nvalues);
 extern void Sleep(uint32_t);
 
+uint8_t CLK2_drive = 3;// 8 mA
+
 /******************************/
 /* Suggested public functions */
 /******************************/
@@ -71,6 +73,8 @@ extern void Sleep(uint32_t);
 void si5351_Init(void)
 {
     CAMERA_IO_Init();
+
+    CLK2_drive = 3;// 8 mA
 
     if (0 == CFG_GetParam(CFG_PARAM_SI5351_BUS_BASE_ADDR))
     {
@@ -419,7 +423,7 @@ static void set_multisynth_alt(uint32_t freq, enum si5351_clock clk)
     else if (clk == SI5351_CLK2)
     {
         //modified for Network Analyser feather by KD8CEC
-        si5351_set_clk_control(clk, SI5351_PLLA, (a == 4) || (a == 6), SI5351_DRIVE_8MA);
+        si5351_set_clk_control(clk, SI5351_PLLA, (a == 4) || (a == 6), CLK2_drive&3);
         si5351_set_ms(a, b, c, rdiv, clk);
         si5351_set_pll(ap, bp, cp, SI5351_PLLA);
     }
@@ -476,7 +480,7 @@ static void si5351_set_clk_control(enum si5351_clock clk, enum si5351_pll pll, i
     si5351_write(SI5351_CLK0_CTRL + (uint8_t)clk, reg_val);
 }
 
-static uint8_t si5351_read_device_reg(uint8_t reg)
+uint8_t si5351_read_device_reg(uint8_t reg)
 {
     uint8_t data = 0;
     si5351_read(reg, &data);

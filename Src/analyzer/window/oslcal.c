@@ -282,7 +282,7 @@ static void _hit_tx_scan(void) // **********************************************
     hbscan->bgcolor = LCD_RGB(0, 128, 0);
     strcpy(progresstxt, "Success (1)");
     TEXTBOX_SetText(&osl_ctx, 0, progresstxt);
-    FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 0, 50, "Now insert attenuator and hit button (2)                  ");// 55 signs
+    FONT_Write(FONT_FRAN, LCD_RED, LCD_BLACK, 0, 50, "Now insert attenuator and touch button (2)  ");// 55 signs
     Sleep(3000);
     progress=1;
     progresstxt[0] = '\0';

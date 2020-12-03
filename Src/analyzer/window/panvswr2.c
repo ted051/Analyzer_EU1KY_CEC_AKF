@@ -75,7 +75,7 @@ void  DrawFootText(void);
 
 typedef enum
 {
-    GRAPH_VSWR, GRAPH_VSWR_Z, GRAPH_VSWR_RX, GRAPH_RX, GRAPH_SMITH, GRAPH_S11
+    GRAPH_VSWR, GRAPH_VSWR_Z, GRAPH_VSWR_RX, GRAPH_RX, GRAPH_SMITH, GRAPH_S11, GRAPH_Smooth
 } GRAPHTYPE;
 
 
@@ -206,7 +206,7 @@ const uint32_t BSVALUES[] = {2,4,10,20,40,100, 150, 200, 250, 300, 400, 500, 100
                              350000, 400000, 450000, 500000, 700000, 1000000\
                             };
 
-static char autoMeasureSpeed = 0;
+static char autoScanFactor = 0;
 static uint32_t f1 = 14000000; //Scan range start frequency, in Hz
 static BANDSPAN span = BS400;
 static float fcur;// frequency at cursor position in kHz
@@ -897,7 +897,7 @@ int i;
         }
     }
 
-    if ((grType == GRAPH_VSWR)||(grType == GRAPH_VSWR_Z)||(grType == GRAPH_VSWR_RX))
+    if ((grType == GRAPH_VSWR)||(grType == GRAPH_VSWR_Z)||(grType == GRAPH_VSWR_RX)||(grType== GRAPH_Smooth))
     {
         if(loglog==0)
         {
@@ -953,11 +953,12 @@ int i;
             }
         }
     }
+    if(grType == GRAPH_Smooth) SmoothOSL();
 }
 
 
-#define RXFAST_DIVIDE_FREQ autoMeasureSpeed
-//#define FAST_DIVIDE_FREQ autoMeasureSpeed
+#define RXFAST_DIVIDE_FREQ autoScanFactor
+//#define FAST_DIVIDE_FREQ autoScanFactor
 
 static void ScanRXFast(void)
 {
@@ -1344,7 +1345,7 @@ static void LoadBkups()
         CFG_Flush();
     }
 
-    autoMeasureSpeed = CFG_GetParam(CFG_PARAM_PAN_AUTOSPEED);
+    autoScanFactor = CFG_GetParam(CFG_PARAM_PAN_AUTOSPEED);
 }
 
 
@@ -2604,6 +2605,8 @@ void DiagType(void) //                      Button3
     else if ((grType == GRAPH_RX) && (CFG_GetParam(CFG_PARAM_S11_SHOW) == 0))
         grType = GRAPH_SMITH;
     else if (grType == GRAPH_S11)
+        grType = GRAPH_Smooth;
+    else if(grType == GRAPH_Smooth)
         grType = GRAPH_SMITH;
     else
         grType = GRAPH_VSWR;

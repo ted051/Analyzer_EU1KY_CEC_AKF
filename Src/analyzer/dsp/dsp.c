@@ -19,6 +19,8 @@
 #include "oslfile.h"
 #include "config.h"
 #include "crash.h"
+#include "si5351.h"
+#include "si5351_hs.h"
 
 //Measuring bridge parameters
 //#define Rmeas 5.1f : moved to configuration variable
@@ -30,9 +32,6 @@
 
 //Maximum number of measurements to average
 #define MAXNMEAS 20
-
-//Magnitude correction factor @ max linear input gain
-#define MCF 0.013077f
 
 extern void Sleep(uint32_t);
 void GEN_SetTXFreq(uint32_t fhz);
@@ -141,7 +140,8 @@ static float complex DSP_FFT(int channel)
     {
         float complex binf = prfft[i];
         float bin_magnitude = cabsf(binf) / (NSAMPLES/2);
-        power += powf(bin_magnitude, 2);
+        //power += powf(bin_magnitude, 2);
+        power += bin_magnitude * bin_magnitude;// avoid powf()
     }
     magnitude = sqrtf(power);
 
@@ -512,7 +512,7 @@ REMEASURE:
 //Set frequency, run measurement sampling and calculate phase, magnitude ratio
 //and Z from sampled data, applying hardware error correction and OSL correction
 //if requested. Note that clock source remains turned on after the measurement!
-void DSP_MeasureTrack(uint32_t freqHz, int applyErrCorr, int applyOSL, int nMeasurements)
+float DSP_MeasureTrack(uint32_t freqHz, int applyErrCorr, int applyOSL, int nMeasurements)
 {
     float mag_v = 0.0f;
     float mag_i = 0.0f;
@@ -522,17 +522,17 @@ void DSP_MeasureTrack(uint32_t freqHz, int applyErrCorr, int applyOSL, int nMeas
     int retries = 3;
 
 
-    if (freqHz < BAND_FMIN || freqHz > CFG_GetParam(CFG_PARAM_BAND_FMAX))
+  /*  if (freqHz < BAND_FMIN || freqHz > CFG_GetParam(CFG_PARAM_BAND_FMAX))
     { // Set defaults for out of band measurements
         magmv_v = 500.f;
         magmv_i = 500.f;
         phdifdeg = 0.f;
         magdifdb = 0.f;
         mZ = 50.0f + 0.0fi;
-        return;
-    }
+        return ;
+    }*/
     GEN_SetTXFreq(freqHz);
-
+    HS_SetPower(2, CLK2_drive, 1);// CLK2: 2 mA .. 8 mA
     //Init
     memset(audioBuf, 0, sizeof(audioBuf));
 
@@ -550,20 +550,7 @@ void DSP_MeasureTrack(uint32_t freqHz, int applyErrCorr, int applyOSL, int nMeas
     //Now perform filtering to remove outliers with sigma > 1.0
     mag_i = DSP_FilterArray(mag_i_buf, nMeasurements, retries);
 
-    magmv_i = mag_i * MCF;
-}
-
-float DSP_MeasuredTrackValue(void)
-{
-
-    return magmv_i;
-    //return DSP_MeasuredMagImv();
-}
-
-float DSP_MeasureTrackCal(void)
-{
-    return magmv_i;
-    //return DSP_MeasuredMagImv();
+    return mag_i;
 }
 
 //extern float complex OSL_CorrectZ_LC(uint32_t fhz, float complex zMeasured);
@@ -741,5 +728,5 @@ float DSP_CalcVSWR(DSP_RX Z)
 uint32_t DSP_GetIF(void)
 {
     static const float binwidth = ((float)(FSAMPLE)) / (NSAMPLES);
-    return (uint32_t)(binwidth * FFTBIN);
+    return (uint32_t)(binwidth * FFTBIN);//10031,25 Hz -> 10031 Hz
 }

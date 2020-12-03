@@ -38,9 +38,10 @@ float DSP_CalcVSWR(DSP_RX Z);
 uint32_t DSP_GetIF(void);
 void DSP_Sample(void);
 void DSP_Sample16(void);
+float DSP_GetValue(uint32_t frequency, int iterations);
 
 //KD8CEC
-void DSP_MeasureTrack(uint32_t freqHz, int applyErrCorr, int applyOSL, int nMeasurements);
+float DSP_MeasureTrack(uint32_t freqHz, int applyErrCorr, int applyOSL, int nMeasurements);
 float DSP_MeasuredTrackValue();
 float DSP_MeasureTrackCal(void);
 
@@ -49,6 +50,11 @@ float DSP_MeasureTrackCal(void);
 #define NDUMMY 32                   //Dummy samples are needed to minimize influence of filter settling after invoking the SAI
 #define FSAMPLE I2S_AUDIOFREQ_48K   //Sampling frequency
 #define FFTBIN 107                  //Bin 107 determines 10031 Hz intermediate frequency at 512 samples at 48 kHz.
+
+
+//Magnitude correction factor @ max linear input gain
+#define MCF 0.013077f
+
 
 #if (FFTBIN >= ((NSAMPLES) / 2))
 #error FFT bin is selected incorrectly
