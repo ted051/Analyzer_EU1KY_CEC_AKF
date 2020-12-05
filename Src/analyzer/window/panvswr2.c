@@ -199,7 +199,7 @@ const char* BSSTR[] = {"2 kHz","4 kHz","10 kHz","20 kHz","40 kHz","100 kHz","150
 const char* BSSTR_HALF[] = {"1 kHz","2 kHz","5 kHz","10 kHz","20 kHz",\
                             "50 kHz","75 kHz","100 kHz","125 kHz","150 kHz","200 kHz","250 kHz", "500 kHz", "1 MHz", "2 MHz", "5 MHz",\
                             "10 MHz", "15 MHz", "20 MHz", "30 MHz", "50 MHz", "100 MHz", "125 MHz", "150 MHz",\
-                            "175 MHz", "200 MHz", "225 MHz", "250 MHz", "350 MHz", "0.5 GHz"
+                            "175 MHz", "200 MHz", "225 MHz", "250 MHz", "350 MHz", " 0.5 GHz "
                            };
 const uint32_t BSVALUES[] = {2,4,10,20,40,100, 150, 200, 250, 300, 400, 500, 1000, 2000,\
                              4000, 10000, 20000, 30000, 40000, 60000, 100000, 200000, 250000, 300000,\

@@ -92,7 +92,7 @@ static uint32_t cursorChangeCount = 0;
 static uint32_t autofast = 0;
 static void Track_DrawRX();
 static int trackbeep;
-static char tmpBuff[20];
+static char tmpBuff[50];
 
 static uint32_t activeLayerS21;
 static int cursorVisibleS21;
@@ -165,11 +165,8 @@ float RawVoltage2;
 static void DrawMeasuredValues(void){
 
 float t1=valuesmI[cursorPos];
-//float t2=valuesdBI[cursorPos];
 
 float voltage1 = powf(10.f, -t1/10.f);
-   // display value (y offset)
-//float DispdB= (float)dispPix * 0.3421f  ;//  0.3421 = 65/190
 int dB = CFG_GetParam(CFG_PARAM_ATTENUATOR);
 uint32_t fstart;// in Hz
 uint32_t fCursor;// in Hz
@@ -185,23 +182,21 @@ uint32_t fCursor;// in Hz
         fCursor = CFG_GetParam(CFG_PARAM_BAND_FMAX);
     LCD_FillRect(LCD_MakePoint(0, 228),LCD_MakePoint(479 , 240),BackGrColor);
 
-    FONT_Print(FONT_FRAN, TextColor, BackGrColor, 0, 225, "F: %8.2f MHz dB: %g",
-               (float)(fCursor/ 1000000.f), t1);
+    FONT_Print(FONT_FRAN, TextColor, BackGrColor, 0, 225, "F: %8.2f MHz dB: %4.1f  V: %8.5f mV" ,
+               (float)(fCursor/ 1000000.f), t1, voltage1);
 
-               // V: %5.3f mV  voltage1,
+               //
    /* FONT_Print(FONT_FRAN, TextColor, BackGrColor, 240, 225, "t1: %g t2: %g",
                value1, value2); */
 }
 
-static void DrawCursorS()
+bool IsInverted;
+
+static void DrawCursorS21()
 {
     int8_t i;
     LCDPoint p;
-    if (!isMeasured)
-        return;
-    if(cursorVisibleS21==0) cursorVisibleS21=1;
-    else cursorVisibleS21=0;
-
+    IsInverted = ~IsInverted;
     //Draw cursor line as inverted image
     p = LCD_MakePoint(X0 + cursorPos, Y0);
 
@@ -244,49 +239,53 @@ static void DrawCursorS()
 
     Sleep(1);
 }
+static LCDColor    c5,c7,c11,c13;
+static void StrictDrawCursor(void){
+bool S;//selector
+    c5=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+5));
+    c7=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+7));
+    c11=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+11));
+    c13=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+13));
+    S=false;
+    if((CurvColor==c5)&&(c7==c11)) S=true;
+    else if((CurvColor==c7)&&(c5==c11)) S=true;
+    else if((CurvColor==c11)&&(c5==c13)) S=true;
+    else if(c7==c11) S=true;
 
-static void DrawCursorS21(int visibl){
-    DrawCursorS();
-    cursorVisibleS21=visibl;
-    return;
 
-  /*  if(BSP_LCD_GetActiveLayer()!=activeLayerS21){
-        BSP_LCD_SelectLayer(activeLayerS21);
-        cursorVisibleS21=visible;
-        DrawCursorS();
-        BSP_LCD_SelectLayer((1+activeLayerS21)%2);
-    }
-    else{
-        BSP_LCD_SelectLayer((1+activeLayerS21)%2);
-        cursorVisibleS21=visible;
-        DrawCursorS();
-        BSP_LCD_SelectLayer(activeLayerS21);
-    }*/
+    if(S)// Is there already a cursor?
+        DrawCursorS21();//if no: set it
+    IsInverted =true;
 }
 
+static void StrictDelCursor(void){
+    bool S;//selector
+    c5=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+5));
+    c7=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+7));
+    c11=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+11));
+    c13=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+13));
+    S=false;
+    if((CurvColor==c5)&&(c7==c11)) S=true;
+    else if((CurvColor==c7)&&(c5==c11)) S=true;
+    else if((CurvColor==c11)&&(c5==c13)) S=true;
+    else if(c7==c11) S=true;
+    if(~S)
+       DrawCursorS21();//if yes: reset it
+    IsInverted =false;
+}
 
 static void MoveCursor(int moveDirection)
 {
+int NewPosition=cursorPos + moveDirection;
+
     if (!isMeasured)
         return;
 
-    if (moveDirection > 0)
-    {
-        if (cursorPos >= WWIDTH)
-            return;
-    }
-    else
-    {
-        if (cursorPos <= 0)
-            return;
-    }
-    if (cursorVisibleS21==1)
-        DrawCursorS21(0);        // delete the old cursor
-    cursorPos += moveDirection;
-    DrawCursorS21(1);
-    cursorVisibleS21=1;
-    //LCD_HLine(LCD_MakePoint(40,226), 400, CurvColor);
-    //LCD_HLine(LCD_MakePoint(40,239), 400, CurvColor);//green line
+    if ((NewPosition > WWIDTH)||(NewPosition < 0)) return;
+
+    StrictDelCursor();        // delete the old cursor
+    cursorPos = NewPosition;
+    StrictDrawCursor();// set the new cursor
 
     if (cursorChangeCount++ < 5){
         DrawMeasuredValues();//DH1AKF  25.10.2020
@@ -294,15 +293,16 @@ static void MoveCursor(int moveDirection)
     }
     Sleep(2);
 }
+
 #define linediv 10
 
 static void Track_DrawGrid(int justGraphDraw)  //
 {
-    char buf[30];
-    int i;
-    int verticalPos = 13;
-    uint32_t fstart;
-    uint32_t pos = 130;
+char buf[30];
+int i;
+int verticalPos = 13;
+uint32_t fstart;
+uint32_t pos = 130;
 
     #define VerticalStep 29.23
     #define VerticalX 10
@@ -334,7 +334,7 @@ static void Track_DrawGrid(int justGraphDraw)  //
         FONT_Write(FONT_FRANBIG, TextColor, 0, 2, 107, "<");
         FONT_Write(FONT_FRANBIG, TextColor, 0, 460, 107, ">");
 
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, 200, 0, "SNA |S21|Gain");
+        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, 230, 0, "|S21|Gain");
         FONT_Write(FONT_FRAN, TextColor, BackGrColor, 280, 0, buf);//LCD_BLUE
 
     }
@@ -683,29 +683,20 @@ void TrackTouchExecute(LCDPoint pt){
         if (autofast == 0)
         {
             autofast = 1;
-            //BSP_LCD_SelectLayer(activeLayerS21);
-            sprintf(tmpBuff, " AUTO SPEED : [%d] ", autoScanFactor);
-            FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 60, 0, tmpBuff);
+            sprintf(tmpBuff, "AA EU1KY-KD8CEC-DH1AKF AUTO: [%d] ", autoScanFactor);
+            FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 0, 0, tmpBuff);
             Track_DrawGrid(2);
-            //BSP_LCD_SelectLayer((1+activeLayerS21)%2);
-            //FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 65, 0, tmpBuff);
-            //TRACK_DrawFootText();
             firstRun=1;
             cursorChangeCount = 0;
             LCD_FillRect(LCD_MakePoint(40, 15), LCD_MakePoint(459 , 225), BackGrColor);
             Track_DrawGrid(1);
-            //BSP_LCD_SelectLayer(activeLayerS21);
         }
         else
         {
             autofast = 0;
-            FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 0, 0, "AA EU1KY-KD8CEC-DH1AKF   ");
+            FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 160, 0, "          ");
             TRACK_DrawFootText();
-            if(cursorVisibleS21==0)
-                DrawCursorS21(1);
-            cursorVisibleS21=1;
         }
-       // TRACK_DrawFootText();
         saveAutofast=autofast;
         return;
     }
@@ -849,17 +840,13 @@ int k, length;
     if(~((c==c2)||(c==c3))){
        if(c2==c3) c=c2;
     }
-    LCD_VLine(LCD_MakePoint(i+X0,Y0),WHEIGHT, c );
-
-    if(c==LCD_COLOR_BLUE) c=BackGrColor;
-    else c=CurvColor;
-    LCD_SetPixel(LCD_MakePoint(i+X0, pos), c);// set the new pixel(s)
+    LCD_VLine(LCD_MakePoint(i+X0,Y0),WHEIGHT+2, c );
+    LCD_SetPixel(LCD_MakePoint(i+X0, pos), CurvColor);// set the new pixel(s)
     if(FatLines){
         LCD_SetPixel(LCD_MakePoint(i+X0, pos-1), c);// WK
     }
+    if(i==cursorPos)    StrictDrawCursor();
 }
-
-int countS21;
 
 static void Scan21Fast()
 {
@@ -876,7 +863,7 @@ float newValue, newValue1,newValue2,newValue3;
     for(i = 0; i <= WWIDTH; i++)
     {
         freq1 = fstart + i * deltaF;
-        k= i / autoScanFactor;
+        k= i/ autoScanFactor;
         if ((0 == (i % 80)) && TOUCH_Poll(&pt)){//  Break/Exit by Touch
             returni=1;
             break;
@@ -894,21 +881,19 @@ float newValue, newValue1,newValue2,newValue3;
             SetMeasPointS21B(i, Y0+newValue2, LCD_COLOR_BLUE);// blue dotted line for test
             SetMeasPointS21B(i, Y0+newValue3, LCD_COLOR_YELLOW);// yellow dotted line for test (original value)*/
         }
-        if(i % autoScanFactor != 0){
-            if(k>=1){
-                i0 = k * autoScanFactor;
-                i2 = i0 - autoScanFactor;
-                for (m= i2+1 ; m < i0; m++){
+        if(k>=1){
+            i0 = k * autoScanFactor;
+            i2 = i0 - autoScanFactor;
+            for (m= i2+1 ; m < i0; m++){
 
 //uint32_t fr1=OSL_GetCalFreqByIdx(i);
 //uint32_t fr2=OSL_GetCalFreqByIdx(i+1);
-                    freq1=freq1+ deltaF*(i0-m)/autoScanFactor;
-                    //Interpolate previous intermediate values linear
-                    valuesmI[m] = valuesmI[i2] + (valuesmI[i0] - valuesmI[i2]) * (m-i2) / autoScanFactor;
-                    //valuesmI[m] = valuesmI[i2] +  (valuesmI[i0] - valuesmI[i2])*(freq1-fr1)/(fr2-fr1);
-                    newValue = valuesmI[m]/65.f*WHEIGHT+Y0;
-                    SetMeasPointS21(m, newValue);
-                }
+                freq1=freq1+ deltaF*(i0-m)/autoScanFactor;
+                //Interpolate previous intermediate values linear
+                valuesmI[m] = valuesmI[i2] + (valuesmI[i0] - valuesmI[i2]) * (m-i2) / autoScanFactor;
+                //valuesmI[m] = valuesmI[i2] +  (valuesmI[i0] - valuesmI[i2])*(freq1-fr1)/(fr2-fr1);
+                newValue = valuesmI[m]/65.f*WHEIGHT+Y0;
+                SetMeasPointS21(m, newValue);
             }
         }
     }
@@ -946,8 +931,7 @@ static void Track_DrawCurve(void)// SelQu=1, if quartz measurement  SelEqu=1, if
         if(FatLines)
             LCD_SetPixel(LCD_MakePoint(x , yofs+1), LCD_WHITE);// WK
     }
-    DrawCursorS21(1);
-    cursorVisibleS21=1;
+    StrictDrawCursor();
 }
 
 static void RedrawWindowS21(int justGraphDraw)
@@ -1078,6 +1062,7 @@ uint32_t fxs;
 extern int OSL_ENTRIES;
 
     redrawRequired = exitScan = 0;
+    IsInverted=false;
     //allocate memory
     valuesmI = (float *)malloc(sizeof(float) * (WWIDTH + 20));
     //valuesdBI = (float *)malloc(sizeof(float) * (WWIDTH + 20));
@@ -1085,11 +1070,13 @@ extern int OSL_ENTRIES;
     BSP_LCD_SelectLayer(activeLayerS21);
     LCD_ShowActiveLayerOnly();
     cursorVisibleS21=0;// in the beginning not visible
+    if(CFG_GetParam(CFG_PARAM_PAN_CENTER_F)==1)
+        cursorPos = WWIDTH / 2;
+        else cursorPos= 0;
     SetColours();
     LCD_FillAll(BackGrColor);
-    countS21==0;
-
-    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 170, 100, " |S21|Gain");
+    FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 0, 0, "AA EU1KY-KD8CEC-DH1AKF ");
+    FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 230, 100, "|S21|Gain");
     Sleep(1000);
     while(TOUCH_IsPressed());
     autofast=0;
@@ -1101,7 +1088,7 @@ extern int OSL_ENTRIES;
     DBG_Str("Load VNA Calibration File \r\n");
 #endif
     }
-    if (! OSL_IsTXCorrLoaded()) CRASH("No S2OSL file");
+    if (! OSL_IsTXCorrLoaded()) CRASH("No S21TX file");
     osl_txCorr=(OSL_ERRCORR*)WORK_Ptr;
 
     //Load saved frequency and span values from config file
@@ -1160,12 +1147,12 @@ extern int OSL_ENTRIES;
                 MakeFstart();// and span
                 isMeasured = 0;
                 Track_DrawGrid(2);
-                BSP_LCD_SelectLayer((1+activeLayerS21)%2);
+               /* BSP_LCD_SelectLayer((1+activeLayerS21)%2);
                 Track_DrawGrid(2);
-                BSP_LCD_SelectLayer(activeLayerS21);
+                BSP_LCD_SelectLayer(activeLayerS21);*/
                 redrawRequired = 0;
                 firstRun=1;
-                DrawCursorS21(1);
+                IsInverted=false;
             }
             touchIndex=255;
         }
@@ -1177,10 +1164,6 @@ extern int OSL_ENTRIES;
             BSP_LCD_SetLayerVisible_NoReload(activeLayerS21, 1);//  ?
             BSP_LCD_SetLayerVisible((1+activeLayerS21)%2, 0);*/
             Scan21Fast();
-            //if(cursorVisibleS21==0)
-            //if(countS21%2==0)
-            DrawCursorS21(1);
-            cursorVisibleS21=1;
             DrawMeasuredValues();
            /* BSP_LCD_SetLayerVisible_NoReload(activeosl_txCorrLayerS21, 1);//  ?
             BSP_LCD_SetLayerVisible((1+activeLayerS21)%2, 0);*/
@@ -1196,7 +1179,6 @@ extern int OSL_ENTRIES;
     }   //end of for(;;)
     GEN_SetClk2Freq(0);// CLK2 off
     //Release Memory
-    //free(valuesdBI);
     free(valuesmI);
     isMeasured = 0;
 }
