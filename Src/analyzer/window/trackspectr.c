@@ -242,16 +242,15 @@ static void DrawCursorS21()
 static LCDColor    c5,c7,c11,c13;
 static void StrictDrawCursor(void){
 bool S;//selector
-    c5=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+5));
-    c7=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+7));
-    c11=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+11));
-    c13=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+13));
+    c5=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+5));
+    c7=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+7));
+    c11=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+11));
+    c13=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+13));
     S=false;
     if((CurvColor==c5)&&(c7==c11)) S=true;
     else if((CurvColor==c7)&&(c5==c11)) S=true;
     else if((CurvColor==c11)&&(c5==c13)) S=true;
     else if(c7==c11) S=true;
-
 
     if(S)// Is there already a cursor?
         DrawCursorS21();//if no: set it
@@ -260,10 +259,10 @@ bool S;//selector
 
 static void StrictDelCursor(void){
     bool S;//selector
-    c5=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+5));
-    c7=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+7));
-    c11=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+11));
-    c13=LCD_ReadPixel(LCD_MakePoint(cursorPos, Y0+13));
+    c5=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+5));
+    c7=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+7));
+    c11=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+11));
+    c13=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+13));
     S=false;
     if((CurvColor==c5)&&(c7==c11)) S=true;
     else if((CurvColor==c7)&&(c5==c11)) S=true;
@@ -288,9 +287,9 @@ int NewPosition=cursorPos + moveDirection;
     StrictDrawCursor();// set the new cursor
 
     if (cursorChangeCount++ < 5){
-        DrawMeasuredValues();//DH1AKF  25.10.2020
         Sleep(20); //Slow down at first steps
     }
+    DrawMeasuredValues();//DH1AKF  25.10.2020
     Sleep(2);
 }
 
