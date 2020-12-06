@@ -164,9 +164,9 @@ float RawVoltage2;
 
 static void DrawMeasuredValues(void){
 
-float t1=valuesmI[cursorPos];
+float t1=-valuesmI[cursorPos];// output 5 dBm
 
-float voltage1 = powf(10.f, -t1/10.f);
+float voltage1 = powf(10.f, (t1+5.f)/20.f)/sqrtf(50);//U = sqrt(P/R)
 int dB = CFG_GetParam(CFG_PARAM_ATTENUATOR);
 uint32_t fstart;// in Hz
 uint32_t fCursor;// in Hz
@@ -182,8 +182,8 @@ uint32_t fCursor;// in Hz
         fCursor = CFG_GetParam(CFG_PARAM_BAND_FMAX);
     LCD_FillRect(LCD_MakePoint(0, 228),LCD_MakePoint(479 , 240),BackGrColor);
 
-    FONT_Print(FONT_FRAN, TextColor, BackGrColor, 0, 225, "F: %8.2f MHz dB: %4.1f  V: %8.5f mV" ,
-               (float)(fCursor/ 1000000.f), t1, voltage1);
+    FONT_Print(FONT_FRAN, TextColor, BackGrColor, 0, 225, "F: %8.2f MHz dB: %4.1f  V: %8.3f mV" ,
+               (float)(fCursor/ 1000000.f), t1, voltage1*1000.f);
 
                //
    /* FONT_Print(FONT_FRAN, TextColor, BackGrColor, 240, 225, "t1: %g t2: %g",
