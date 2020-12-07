@@ -72,8 +72,8 @@ static float _nonz(float f)
     return f;
 }
 
-
-//Goertzel_2
+/*
+//Goertzel_2  +++++++++++++ TEST ++++++++++++++++++
 
 float sine, cosine, selstartGoertzel=0;
 
@@ -116,7 +116,7 @@ float goertzel(int NumSamples, float* data) //, float* realresult, float* imagre
     return magnitude;
 }
 
-
+*/
 
 static float complex DSP_FFT(int channel)
 {

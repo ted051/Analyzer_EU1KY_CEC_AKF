@@ -1109,7 +1109,7 @@ float complex LC_OSL_CorrectZ(uint32_t fhz, float complex zMeasured)
     return g;
 }
 
-
+/*  ********** test *****************
 S_OSLDATA oslDataMax, oslData1, oslData2, oslData3;
 int MaxIndex[4];
 float MaxDiff[4];
@@ -1208,4 +1208,5 @@ char buf[50];
     }
 }
 
+*/
 

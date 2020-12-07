@@ -75,7 +75,7 @@ void  DrawFootText(void);
 
 typedef enum
 {
-    GRAPH_VSWR, GRAPH_VSWR_Z, GRAPH_VSWR_RX, GRAPH_RX, GRAPH_SMITH, GRAPH_S11, GRAPH_Smooth
+    GRAPH_VSWR, GRAPH_VSWR_Z, GRAPH_VSWR_RX, GRAPH_RX, GRAPH_S11, GRAPH_SMITH, GRAPH_Smooth
 } GRAPHTYPE;
 
 
@@ -953,7 +953,7 @@ int i;
             }
         }
     }
-    if(grType == GRAPH_Smooth) SmoothOSL();
+   // for test:// if(grType == GRAPH_Smooth) SmoothOSL();
 }
 
 
@@ -2590,9 +2590,28 @@ void Store(void) //             Button 2
     redrawRequired = 1;
 }
 
-void DiagType(void) //                      Button3
+void DiagType(void) //                      Button3 (central)
 {
     autofast=0;
+
+                                            // toggle Diagram Type
+    if (grType == GRAPH_VSWR)
+        grType = GRAPH_VSWR_Z;
+    else if (grType == GRAPH_VSWR_Z)
+        grType = GRAPH_VSWR_RX;
+    else if (grType == GRAPH_VSWR_RX)
+        grType = GRAPH_RX;
+    else if ((grType == GRAPH_RX) && (CFG_GetParam(CFG_PARAM_S11_SHOW) == 1))
+        grType = GRAPH_S11;
+    else if ((grType == GRAPH_RX) && (CFG_GetParam(CFG_PARAM_S11_SHOW) == 0))
+        grType = GRAPH_SMITH;
+    else if (grType == GRAPH_S11)
+        grType = GRAPH_SMITH;
+    else
+        grType = GRAPH_VSWR;
+
+    /*
+
     // toggle Diagram Type
     if (grType == GRAPH_VSWR)
         grType = GRAPH_VSWR_Z;
@@ -2605,11 +2624,12 @@ void DiagType(void) //                      Button3
     else if ((grType == GRAPH_RX) && (CFG_GetParam(CFG_PARAM_S11_SHOW) == 0))
         grType = GRAPH_SMITH;
     else if (grType == GRAPH_S11)
-        grType = GRAPH_Smooth;
+        grType = GRAPH_Smooth;//**********test ***********
     else if(grType == GRAPH_Smooth)
         grType = GRAPH_SMITH;
     else
-        grType = GRAPH_VSWR;
+        grType = GRAPH_VSWR;*/
+
     redrawRequired = 1;
     LCD_FillAll(BackGrColor);
     activeLayerX=!BSP_LCD_GetActiveLayer();
@@ -2617,7 +2637,7 @@ void DiagType(void) //                      Button3
     LCD_FillAll(BackGrColor);
 }
 
-void Save_Snap(void) // Save Snap             Button4
+void Save_Snap(void) // Save Snapshot         Button4
 {
     autofast=0;
     save_snapshot();
