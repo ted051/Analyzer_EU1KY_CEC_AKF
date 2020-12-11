@@ -242,10 +242,10 @@ static void DrawCursorS21()
 static LCDColor    c5,c7,c11,c13;
 static void StrictDrawCursor(void){
 bool S;//selector
-    c5=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+5));
-    c7=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+7));
-    c11=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+11));
-    c13=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+13));
+    c5=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+35));
+    c7=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+37));
+    c11=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+41));
+    c13=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+43));
     S=false;
     if((CurvColor==c5)&&(c7==c11)) S=true;
     else if((CurvColor==c7)&&(c5==c11)) S=true;
@@ -259,10 +259,10 @@ bool S;//selector
 
 static void StrictDelCursor(void){
     bool S;//selector
-    c5=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+5));
-    c7=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+7));
-    c11=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+11));
-    c13=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+13));
+    c5=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+35));
+    c7=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+37));
+    c11=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+41));
+    c13=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+43));
     S=false;
     if((CurvColor==c5)&&(c7==c11)) S=true;
     else if((CurvColor==c7)&&(c5==c11)) S=true;
@@ -298,12 +298,12 @@ int NewPosition=cursorPos + moveDirection;
 static void Track_DrawGrid(int justGraphDraw)  //
 {
 char buf[30];
-int i;
-int verticalPos = 13;
+int i, r;
+int verticalPos = 130;
 uint32_t fstart;
 uint32_t pos = 130;
 
-    #define VerticalStep 29.23
+    #define VerticalStep 146
     #define VerticalX 10
 
     if (0 == CFG_GetParam(CFG_PARAM_PAN_CENTER_F))
@@ -321,12 +321,17 @@ uint32_t pos = 130;
     if (justGraphDraw%1==0)
     {
         //Vertical Numbers
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, " 0dB");
-
-        for(i=-10;i>=-60;i=i-10){
+        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos/10, " 0dB");
+        r=10*Y0;
+        verticalPos+=VerticalStep;
+        for(i=10;i<=60;i+=5){
             verticalPos += VerticalStep;
-            LCD_HLine(LCD_MakePoint(X0 -5 , verticalPos+6), 5, WGRIDCOLOR);
-            FONT_Print(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos, "%d", i); // - xx
+            LCD_HLine(LCD_MakePoint(X0 -5 , r/10), WWIDTH+5, WGRIDCOLOR);
+            if(i%10==0){
+                LCD_HLine(LCD_MakePoint(X0 -5 , r/10+1), WWIDTH+5, WGRIDCOLOR);
+                FONT_Print(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos/10, "%d", -i); // - xx
+            }
+            r+=VerticalStep;
         }
 
         //FONT_Write(FONT_FRAN, LCD_BLACK, LCD_PURPLE, 50, 0, modstr);
@@ -683,7 +688,7 @@ void TrackTouchExecute(LCDPoint pt){
         {
             autofast = 1;
             sprintf(tmpBuff, "AA EU1KY-KD8CEC-DH1AKF AUTO: [%d] ", autoScanFactor);
-            FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 0, 0, tmpBuff);
+            FONT_Write(FONT_FRAN, TextColor, BackGrColor, 0, 0, tmpBuff);
             Track_DrawGrid(2);
             firstRun=1;
             cursorChangeCount = 0;
@@ -693,7 +698,7 @@ void TrackTouchExecute(LCDPoint pt){
         else
         {
             autofast = 0;
-            FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 160, 0, "          ");
+            FONT_Write(FONT_FRAN, TextColor, BackGrColor, 160, 0, "          ");
             TRACK_DrawFootText();
         }
         saveAutofast=autofast;
@@ -748,10 +753,12 @@ void TrackTouchExecute(LCDPoint pt){
             break;
         }
         case 6:{    //Capture
+            LCD_FillRect((LCDPoint){0,248}, (LCDPoint){50,271}, BackGrColor);
             save_snapshot();
             //Redraw
-            redrawRequired = 1;
-           // RedrawWindowS21(0);DrawCursorS
+            //redrawRequired = 1;
+            RedrawWindowS21(0);
+            //DrawCursorS
             TRACK_DrawFootText();
             DrawAutoText();
             break;
@@ -828,7 +835,7 @@ int k, length;
 */
 
 void SetMeasPointS21(uint32_t i, int pos){
-int lmod = 5;
+int r;
 int k, length;
     if(pos<Y0) pos=Y0;
     if(pos>Y0+WHEIGHT) pos=Y0+WHEIGHT;
@@ -839,10 +846,16 @@ int k, length;
     if(~((c==c2)||(c==c3))){
        if(c2==c3) c=c2;
     }
-    LCD_VLine(LCD_MakePoint(i+X0,Y0),WHEIGHT+2, c );
+    LCD_VLine(LCD_MakePoint(i+X0, Y0),WHEIGHT+2, c );
+    r=10*Y0;
+    for(k=0;k<14;k++){// horizontal lines
+    LCD_SetPixel(LCD_MakePoint(i+X0,r/10),WGRIDCOLOR);
+    if(k%2==0)  LCD_SetPixel(LCD_MakePoint(i+X0,r/10+1),WGRIDCOLOR);
+    r+=146;
+    }
     LCD_SetPixel(LCD_MakePoint(i+X0, pos), CurvColor);// set the new pixel(s)
     if(FatLines){
-        LCD_SetPixel(LCD_MakePoint(i+X0, pos-1), c);// WK
+        LCD_SetPixel(LCD_MakePoint(i+X0, pos-1), CurvColor);// WK
     }
     if(i==cursorPos)    StrictDrawCursor();
 }
@@ -1074,7 +1087,7 @@ extern int OSL_ENTRIES;
         else cursorPos= 0;
     SetColours();
     LCD_FillAll(BackGrColor);
-    FONT_Write(FONT_FRAN, LCD_GREEN, LCD_BLACK, 0, 0, "AA EU1KY-KD8CEC-DH1AKF ");
+    FONT_Write(FONT_FRAN, TextColor, BackGrColor, 0, 0, "AA EU1KY-KD8CEC-DH1AKF ");
     FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 230, 100, "|S21|Gain");
     Sleep(1000);
     while(TOUCH_IsPressed());
