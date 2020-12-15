@@ -1124,7 +1124,8 @@ extern int OSL_ENTRIES;
     BSP_LCD_SelectLayer(activeLayerS21);
     exitScan=0;
     FirstRunS21=1;
-    redrawRequired=1;
+    redrawRequired=0;
+    autofast=0;
 
     for(;;)
     {
