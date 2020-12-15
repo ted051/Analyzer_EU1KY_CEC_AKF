@@ -97,6 +97,7 @@ static char tmpBuff[50];
 static uint32_t activeLayerS21;
 static int cursorVisibleS21;
 static int firstRun;
+static int FirstRunS21;
 
 //=====================================================================
 //Menu
@@ -304,7 +305,7 @@ uint32_t pos = 130;
     if (justGraphDraw%1==0)
     {
         //Vertical Numbers
-        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos/10, " 0dB");
+        FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, Y0, " 0dB");
         r=10*Y0;
         verticalPos+=VerticalStep;
         for(i=10;i<=75;i+=5){
@@ -655,41 +656,15 @@ static void MakeFstart(void){
 static void RedrawWindowS21(int justGraphDraw);
 static LCDPoint    pt1;
 static int touchIndex;
-static uint32_t saveAutofast;
 
 void TrackTouchExecute(LCDPoint pt){
 
     touchIndex = GetTouchIndex(pt, trackMenus, trackMenu_Length);
-    if(touchIndex <9){ // Beep
+    if(touchIndex < 9){ // Beep
         TRACK_Beep(1);
         while(TOUCH_IsPressed());
         Sleep(100);
     }
-    if(touchIndex==8){
-    // Button Auto
-        if (autofast == 0)
-        {
-            autofast = 1;
-            sprintf(tmpBuff, "AA EU1KY-KD8CEC-DH1AKF AUTO: [%d] ", autoScanFactor);
-            FONT_Write(FONT_FRAN, TextColor, BackGrColor, 0, 0, tmpBuff);
-            Track_DrawGrid(2);
-            firstRun=1;
-            cursorChangeCount = 0;
-            LCD_FillRect(LCD_MakePoint(40, 15), LCD_MakePoint(459 , 225), BackGrColor);
-            Track_DrawGrid(1);
-        }
-        else
-        {
-            autofast = 0;
-            FONT_Write(FONT_FRAN, TextColor, BackGrColor, 160, 0, "          ");
-            StrictDrawCursor();
-            TRACK_DrawFootText();
-        }
-        saveAutofast=autofast;
-        return;
-    }
-
-    saveAutofast=autofast;
 
     switch(touchIndex){ // Exit
         case 0:{
@@ -697,12 +672,22 @@ void TrackTouchExecute(LCDPoint pt){
             break;
         }
         case 9: { // < Button
-            if(autofast==0)
+            if(FirstRunS21==1) {
+                touchIndex=8;
+                FirstRunS21=0;
+                break;
+            }
+            //if(autofast==0)
                 MoveCursor(-1);
             break;
         }
         case 10:{          // > Button
-            if(autofast==0)
+            if(FirstRunS21==1) {
+                touchIndex=8;
+                FirstRunS21=0;
+                break;
+            }
+            //if(autofast==0)
                 MoveCursor(1);
             break;
         }
@@ -748,14 +733,36 @@ void TrackTouchExecute(LCDPoint pt){
             break;
         }
         case 7:{    // SetCursor
-            if(autofast!=0) break;
+            //if(autofast!=0) break;
             uint16_t cursorNew=pt.x;
             if(pt.x<X0) cursorNew=X0;
             if(pt.x>X0+WWIDTH) cursorNew=WWIDTH;
             MoveCursor(cursorNew-cursorPos-X0);
             break;
         }//end of case
-    }// end of if..else
+    }
+    if(touchIndex==8){
+    // Button Auto
+        if (autofast == 0)
+        {
+            autofast = 1;
+            sprintf(tmpBuff, "AA EU1KY-KD8CEC-DH1AKF AUTO: [%d] ", autoScanFactor);
+            FONT_Write(FONT_FRAN, TextColor, BackGrColor, 0, 0, tmpBuff);
+            Track_DrawGrid(2);
+            cursorChangeCount = 0;
+            LCD_FillRect(LCD_MakePoint(40, 15), LCD_MakePoint(459 , 225), BackGrColor);
+            Track_DrawGrid(1);
+        }
+        else
+        {
+            autofast = 0;
+            FONT_Write(FONT_FRAN, TextColor, BackGrColor, 160, 0, "          ");
+            StrictDrawCursor();
+            TRACK_DrawFootText();
+        }
+        return;
+    }
+
 }
 
 
@@ -1054,7 +1061,6 @@ void Track_Proc1(void)
 
 void Track_Proc(void)// ==================== S21 screen ====================================
 {
-
 uint32_t fxkHzs;//Scan range start frequency, in kHz
 uint32_t fxs;
 extern int OSL_ENTRIES;
@@ -1077,7 +1083,6 @@ extern int OSL_ENTRIES;
     FONT_Write(FONT_FRANBIG, TextColor, BackGrColor, 230, 100, "|S21|Gain");
     Sleep(1000);
     while(TOUCH_IsPressed());
-    autofast=0;
     //Load Calibration
     if (! OSL_IsTXCorrLoaded())
     {
@@ -1111,7 +1116,6 @@ extern int OSL_ENTRIES;
     TRACK_DrawFootText();
     DrawAutoText();
     while(!TOUCH_IsPressed());
-    saveAutofast=1;
     BSP_LCD_SelectLayer(activeLayerS21);
     LCD_FillAll(BackGrColor);
     BSP_LCD_SelectLayer((1+activeLayerS21)%2);
@@ -1119,13 +1123,15 @@ extern int OSL_ENTRIES;
     Track_DrawGrid(0);
     BSP_LCD_SelectLayer(activeLayerS21);
     exitScan=0;
+    FirstRunS21=1;
+    redrawRequired=1;
+
     for(;;)
     {
         Sleep(0);
         if (TOUCH_Poll(&pt0)){// touch check
             TrackTouchExecute(pt0);
             if (exitScan==1) break;
-            autofast=saveAutofast;
         }
         else
         {
@@ -1149,7 +1155,6 @@ extern int OSL_ENTRIES;
                 Track_DrawGrid(2);
                 BSP_LCD_SelectLayer(activeLayerS21);*/
                 redrawRequired = 0;
-                firstRun=1;
                 IsInverted=false;
             }
             touchIndex=255;
@@ -1157,6 +1162,7 @@ extern int OSL_ENTRIES;
 
         if (autofast)                                   //Auto Scan
         {
+
            /* activeLayerS21=(1+activeLayerS21)%2;
             BSP_LCD_SelectLayer(activeLayerS21);
             BSP_LCD_SetLayerVisible_NoReload(activeLayerS21, 1);//  ?

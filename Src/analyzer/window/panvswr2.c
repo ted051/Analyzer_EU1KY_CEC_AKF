@@ -3034,6 +3034,7 @@ int counter=repeatNumber;
 
 void PANVSWR2_Proc(void)// **************************************************************************+*********
 {
+int FirstRun=1;
     rqExitSWR=false;
     activeLayerX=1;
     BSP_LCD_SelectLayer(activeLayerX);
@@ -3148,29 +3149,35 @@ void PANVSWR2_Proc(void)// *****************************************************
             }
             else if((pt.x>=0)&&(pt.x<=44))
             {
-                if((pt.y>=93)&&(pt.y<=128)){//       "<"
-                    autofast=0;
-                    redrawRequired=0;
-                    OneBeep(1);
-                    DecrCursor();
-                    while(TOUCH_IsPressed()){
-                        DecrCursor();
-                        if(cursorChangeCount>=5)
-                            Beeper=0;
-                    }
-                    cursorChangeCount=0;
+                if(FirstRun==1){
+                    FirstRun=2;
+                    autofast=1;
                 }
-                else if((pt.y>=132)&&(pt.y<=167)){// ">"
-                    autofast=0;
-                    redrawRequired=0;
-                    OneBeep(1);
-                    IncrCursor();
-                    while(TOUCH_IsPressed()){
-                        IncrCursor();
-                        if(cursorChangeCount>=5)
-                            Beeper=0;
+                else{
+                    if((pt.y>=93)&&(pt.y<=128)){//       "<"
+                        autofast=0;
+                        redrawRequired=0;
+                        OneBeep(1);
+                        DecrCursor();
+                        while(TOUCH_IsPressed()){
+                            DecrCursor();
+                            if(cursorChangeCount>=5)
+                                Beeper=0;
+                        }
+                        cursorChangeCount=0;
                     }
-                    cursorChangeCount=0;
+                    else if((pt.y>=132)&&(pt.y<=167)){// ">"
+                        autofast=0;
+                        redrawRequired=0;
+                        OneBeep(1);
+                        IncrCursor();
+                        while(TOUCH_IsPressed()){
+                            IncrCursor();
+                            if(cursorChangeCount>=5)
+                                Beeper=0;
+                        }
+                        cursorChangeCount=0;
+                    }
                 }
             }
         }
@@ -3186,6 +3193,10 @@ void PANVSWR2_Proc(void)// *****************************************************
             ScanRXFast();
             RedrawWindow();
             holdScale=1;
+            if(FirstRun==2){
+                FirstRun=0;
+                autofast=0;
+            }
             redrawRequired=0;
             autosleep_timer = 30000; //CFG_GetParam(CFG_PARAM_LOWPWR_TIME);
         }
