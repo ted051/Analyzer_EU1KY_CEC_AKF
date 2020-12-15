@@ -182,7 +182,7 @@ uint32_t fCursor;// in Hz
         fCursor = CFG_GetParam(CFG_PARAM_BAND_FMAX);
     LCD_FillRect(LCD_MakePoint(0, 228),LCD_MakePoint(479 , 240),BackGrColor);
 
-    FONT_Print(FONT_FRAN, TextColor, BackGrColor, 0, 225, "F: %8.2f MHz dB: %4.1f  V: %8.3f mV" ,
+    FONT_Print(FONT_FRAN, TextColor, BackGrColor, 0, 225, "F: %8.2f MHz   dB: %4.1f   V:%7.3f mV" ,
                (float)(fCursor/ 1000000.f), t1, voltage1*1000.f);
 
                //
@@ -192,85 +192,68 @@ uint32_t fCursor;// in Hz
 
 bool IsInverted;
 
-static void DrawCursorS21()
+static void DrawCursorS21(int offset)
 {
-    int8_t i;
+    int i;
+    int x=X0 + cursorPos+offset;
+    if((x<X0)||(x>X0+WWIDTH)) return;
     LCDPoint p;
-    IsInverted = ~IsInverted;
-    //Draw cursor line as inverted image
-    p = LCD_MakePoint(X0 + cursorPos, Y0);
+    //Draw cursor line in TextColor
+    p = LCD_MakePoint(x, Y0);
 
-    if(ColourSelection==1){// Daylightcolours
-        while (p.y < Y0 + WHEIGHT){
-           if((p.y % 20)<10)
-                WK_InvertPixel(p.x,p.y);
-           else LCD_InvertPixel(p);
-           p.y++;
-
-        }
+    i=0;
+    for(p.y=Y0; p.y<Y0+WHEIGHT; p.y++){
+        if(i<10) LCD_SetPixel(p,TextColor);//was: WK_InvertPixel(p.x,p.y);
+        i++;
+        if(i>=20) i=0;
     }
-    else{
-        while (p.y < Y0 + WHEIGHT){
-            if((p.y % 20)<10)
-                LCD_InvertPixel(p);
-            p.y++;
-
-        }
+    if(offset==0){
+        LCD_FillRect((LCDPoint){X0 + cursorPos-3,Y0+WHEIGHT+2},(LCDPoint){X0 + cursorPos+3,Y0+WHEIGHT+4},BackGrColor);
+        LCD_FillRect((LCDPoint){X0 + cursorPos-2,Y0+WHEIGHT+2},(LCDPoint){X0 + cursorPos+2,Y0+WHEIGHT+4},TextColor);
     }
-
-    if(FatLines){
-        p.x--;
-        while (p.y >= Y0)
-        {
-            LCD_InvertPixel(p);
-            p.y--;
-        }
-        p.x+=2;
-        while (p.y < Y0 + WHEIGHT)
-        {
-            LCD_InvertPixel(p);
-            p.y++;
-        }
-        p.x--;
-    }
-
-    LCD_FillRect((LCDPoint){X0 + cursorPos-3,Y0+WHEIGHT+2},(LCDPoint){X0 + cursorPos+3,Y0+WHEIGHT+4},BackGrColor);
-    LCD_FillRect((LCDPoint){X0 + cursorPos-2,Y0+WHEIGHT+2},(LCDPoint){X0 + cursorPos+2,Y0+WHEIGHT+4},TextColor);
-
     Sleep(1);
 }
-static LCDColor    c5,c7,c11,c13;
-static void StrictDrawCursor(void){
-bool S;//selector
-    c5=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+35));
-    c7=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+37));
-    c11=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+41));
-    c13=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+43));
-    S=false;
-    if((CurvColor==c5)&&(c7==c11)) S=true;
-    else if((CurvColor==c7)&&(c5==c11)) S=true;
-    else if((CurvColor==c11)&&(c5==c13)) S=true;
-    else if(c7==c11) S=true;
 
-    if(S)// Is there already a cursor?
-        DrawCursorS21();//if no: set it
-    IsInverted =true;
+static LCDColor   c, c31, c35;
+static int r, k, x, pos;
+
+static void StrictDelCursor1(int offset){
+    x=X0+cursorPos+offset;
+    if((x<X0)||(x>X0+WWIDTH)) return;
+    c31=LCD_ReadPixel(LCD_MakePoint(x, Y0+31));// no horizontal line between 30..39
+    c35=LCD_ReadPixel(LCD_MakePoint(x, Y0+35));
+    c=c31;
+    if(c31==CurvColor) c=c35;
+    LCD_VLine(LCD_MakePoint(x, Y0),WHEIGHT+2, c );//draw original
+    // draw horiz. lines:
+    r=10*Y0;
+    for(k=0;k<14;k++){// horizontal lines
+        LCD_SetPixel(LCD_MakePoint(x,r/10),WGRIDCOLOR);
+        if(k%2==0)  LCD_SetPixel(LCD_MakePoint(x,r/10+1),WGRIDCOLOR);
+        r+=146;
+    }
+    pos = Y0+valuesmI[cursorPos+offset]/65.f*WHEIGHT;
+    LCD_SetPixel(LCD_MakePoint(x, pos), CurvColor);// set the new pixel(s)
+    if(FatLines){
+        LCD_SetPixel(LCD_MakePoint(x, pos-1), CurvColor);// WK
+        LCD_SetPixel(LCD_MakePoint(x, pos+1), CurvColor);// WK
+    }
 }
 
 static void StrictDelCursor(void){
-    bool S;//selector
-    c5=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+35));
-    c7=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+37));
-    c11=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+41));
-    c13=LCD_ReadPixel(LCD_MakePoint(X0+cursorPos, Y0+43));
-    S=false;
-    if((CurvColor==c5)&&(c7==c11)) S=true;
-    else if((CurvColor==c7)&&(c5==c11)) S=true;
-    else if((CurvColor==c11)&&(c5==c13)) S=true;
-    else if(c7==c11) S=true;
-    if(~S)
-       DrawCursorS21();//if yes: reset it
-    IsInverted =false;
+    StrictDelCursor1(0);
+    if(FatLines){
+        StrictDelCursor1(-1);
+        StrictDelCursor1(1);
+    }
+}
+
+static void StrictDrawCursor(void){
+    DrawCursorS21(0);
+    if(FatLines){
+        DrawCursorS21(-1);
+        DrawCursorS21(1);
+    }
 }
 
 static void MoveCursor(int moveDirection)
@@ -299,7 +282,7 @@ static void Track_DrawGrid(int justGraphDraw)  //
 {
 char buf[30];
 int i, r;
-int verticalPos = 130;
+int verticalPos = 125;
 uint32_t fstart;
 uint32_t pos = 130;
 
@@ -324,12 +307,12 @@ uint32_t pos = 130;
         FONT_Write(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos/10, " 0dB");
         r=10*Y0;
         verticalPos+=VerticalStep;
-        for(i=10;i<=60;i+=5){
+        for(i=10;i<=75;i+=5){
             verticalPos += VerticalStep;
             LCD_HLine(LCD_MakePoint(X0 -5 , r/10), WWIDTH+5, WGRIDCOLOR);
             if(i%10==0){
                 LCD_HLine(LCD_MakePoint(X0 -5 , r/10+1), WWIDTH+5, WGRIDCOLOR);
-                FONT_Print(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos/10, "%d", -i); // - xx
+                if(i<=60) FONT_Print(FONT_FRAN, CurvColor, BackGrColor, VerticalX, verticalPos/10, "%d", -i); // - xx
             }
             r+=VerticalStep;
         }
@@ -699,6 +682,7 @@ void TrackTouchExecute(LCDPoint pt){
         {
             autofast = 0;
             FONT_Write(FONT_FRAN, TextColor, BackGrColor, 160, 0, "          ");
+            StrictDrawCursor();
             TRACK_DrawFootText();
         }
         saveAutofast=autofast;
@@ -840,24 +824,25 @@ int k, length;
     if(pos<Y0) pos=Y0;
     if(pos>Y0+WHEIGHT) pos=Y0+WHEIGHT;
 
-    LCDColor c = LCD_ReadPixel(LCD_MakePoint(i+X0, Y0 + 11));// take the colour from screen
-    LCDColor c2 = LCD_ReadPixel(LCD_MakePoint(i+X0, Y0 + 13));
-    LCDColor c3 = LCD_ReadPixel(LCD_MakePoint(i+X0, Y0 + 15));
-    if(~((c==c2)||(c==c3))){
-       if(c2==c3) c=c2;
-    }
-    LCD_VLine(LCD_MakePoint(i+X0, Y0),WHEIGHT+2, c );
+    if(i==cursorPos)    StrictDelCursor();
+
+    c31=LCD_ReadPixel(LCD_MakePoint(x, Y0+31));// no horizontal line between 30..39
+    c35=LCD_ReadPixel(LCD_MakePoint(x, Y0+35));
+    c=c31;
+    if(c31==CurvColor) c=c35;
+    LCD_VLine(LCD_MakePoint(x, Y0),WHEIGHT+2, c );//draw original
     r=10*Y0;
     for(k=0;k<14;k++){// horizontal lines
-    LCD_SetPixel(LCD_MakePoint(i+X0,r/10),WGRIDCOLOR);
-    if(k%2==0)  LCD_SetPixel(LCD_MakePoint(i+X0,r/10+1),WGRIDCOLOR);
-    r+=146;
-    }
-    LCD_SetPixel(LCD_MakePoint(i+X0, pos), CurvColor);// set the new pixel(s)
-    if(FatLines){
-        LCD_SetPixel(LCD_MakePoint(i+X0, pos-1), CurvColor);// WK
+        LCD_SetPixel(LCD_MakePoint(i+X0,r/10),WGRIDCOLOR);
+        if(k%2==0)  LCD_SetPixel(LCD_MakePoint(i+X0,r/10+1),WGRIDCOLOR);
+        r+=146;
     }
     if(i==cursorPos)    StrictDrawCursor();
+    LCD_SetPixel(LCD_MakePoint(i+X0, pos), CurvColor);// set the new pixel(s) over cursor line
+    if(FatLines){
+        LCD_SetPixel(LCD_MakePoint(i+X0, pos-1), CurvColor);
+        LCD_SetPixel(LCD_MakePoint(i+X0, pos+1), CurvColor);
+    }
 }
 
 static void Scan21Fast()
@@ -900,7 +885,7 @@ float newValue, newValue1,newValue2,newValue3;
 
 //uint32_t fr1=OSL_GetCalFreqByIdx(i);
 //uint32_t fr2=OSL_GetCalFreqByIdx(i+1);
-                freq1=freq1+ deltaF*(i0-m)/autoScanFactor;
+                //freq1=freq1+ deltaF*(i0-m)/autoScanFactor;
                 //Interpolate previous intermediate values linear
                 valuesmI[m] = valuesmI[i2] + (valuesmI[i0] - valuesmI[i2]) * (m-i2) / autoScanFactor;
                 //valuesmI[m] = valuesmI[i2] +  (valuesmI[i0] - valuesmI[i2])*(freq1-fr1)/(fr2-fr1);
@@ -939,9 +924,10 @@ static void Track_DrawCurve(void)// SelQu=1, if quartz measurement  SelEqu=1, if
         {
             yofs = Y0;
         }
-        LCD_SetPixel(LCD_MakePoint(x, yofs), LCD_WHITE);
+        LCD_SetPixel(LCD_MakePoint(x, yofs), CurvColor);
         if(FatLines)
-            LCD_SetPixel(LCD_MakePoint(x , yofs+1), LCD_WHITE);// WK
+            LCD_SetPixel(LCD_MakePoint(x , yofs+1), CurvColor);// WK
+            LCD_SetPixel(LCD_MakePoint(x , yofs-1), CurvColor);// WK
     }
     StrictDrawCursor();
 }
