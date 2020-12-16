@@ -833,11 +833,11 @@ int k, length;
 
     if(i==cursorPos)    StrictDelCursor();
 
-    c31=LCD_ReadPixel(LCD_MakePoint(x, Y0+31));// no horizontal line between 30..39
-    c35=LCD_ReadPixel(LCD_MakePoint(x, Y0+35));
+    c31=LCD_ReadPixel(LCD_MakePoint(i+X0, Y0+31));// no horizontal line between 30..39
+    c35=LCD_ReadPixel(LCD_MakePoint(i+X0, Y0+35));
     c=c31;
     if(c31==CurvColor) c=c35;
-    LCD_VLine(LCD_MakePoint(x, Y0),WHEIGHT+2, c );//draw original
+    LCD_VLine(LCD_MakePoint(i+X0, Y0),WHEIGHT+2, c );//draw original
     r=10*Y0;
     for(k=0;k<14;k++){// horizontal lines
         LCD_SetPixel(LCD_MakePoint(i+X0,r/10),WGRIDCOLOR);
